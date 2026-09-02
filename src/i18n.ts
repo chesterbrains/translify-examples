@@ -33,3 +33,18 @@ export const initI18n = async (config: TranslifyConfig): Promise<i18n> => {
 
   return i18next;
 };
+
+/**
+ * `fallbackLng` means a key missing only in the current language (but present
+ * in the fallback) resolves silently — `parseMissingKeyHandler` never fires,
+ * so the gap never reaches the Missing keys list. This checks the current
+ * language alone, with fallback off for the check only, so that case is
+ * still recorded even though `t()` still renders the fallback value.
+ */
+export const translateAndDiagnose = (instance: i18n, t: (key: string) => string, key: string): string => {
+  if (!instance.exists(key, { lng: instance.language, fallbackLng: false })) {
+    appendMissingKey(key);
+  }
+
+  return t(key);
+};
