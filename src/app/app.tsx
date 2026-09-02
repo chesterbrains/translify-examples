@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { TranslifyConfig } from '../translify/types';
 import { useExchanges } from '../diagnostics/exchange-log';
+import { DiagnosticsDrawer } from '../diagnostics/drawer';
 import { DeliveryErrorCard } from './delivery-error-card';
 import { CartPage } from './cart-page';
 import { LocaleSwitcher } from './locale-switcher';
@@ -26,6 +27,7 @@ export const App = ({ config }: { config: TranslifyConfig }): React.ReactNode =>
       ) : (
         <CartPage />
       )}
+      <DiagnosticsDrawer config={config} />
     </main>
   );
 };
