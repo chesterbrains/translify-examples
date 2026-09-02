@@ -38,6 +38,8 @@ export const createBackend = (config: TranslifyConfig): BackendModule => ({
         return;
       }
       callback(null, exchange.outcome.body);
+    }).catch((error: unknown) => {
+      callback(error instanceof Error ? error : new Error(String(error)), false);
     });
   },
 });

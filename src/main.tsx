@@ -26,5 +26,14 @@ if (!result.ok) {
         <App config={result.config} />
       </StrictMode>,
     );
+  }).catch((error: unknown) => {
+    createRoot(root).render(
+      <StrictMode>
+        <main className="mx-auto max-w-xl p-8">
+          <h1 className="text-xl font-semibold text-red-900">Failed to start</h1>
+          <p className="mt-2 text-sm text-red-800">{error instanceof Error ? error.message : String(error)}</p>
+        </main>
+      </StrictMode>,
+    );
   });
 }
