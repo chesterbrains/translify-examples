@@ -70,8 +70,22 @@ describe('withKey', () => {
     expect(withKey('/delivery/a/b/it-IT?namespace=cart', 'k')).toBe('/delivery/a/b/it-IT?namespace=cart&key=k');
   });
 
+  it('appends a masked key verbatim, for display', () => {
+    expect(withKey('/p', '••••••••c123')).toBe('/p?key=••••••••c123');
+  });
+});
+
+describe('buildDeliveryPath with a key', () => {
+  it('adds the key through the same URLSearchParams as the other parameters', () => {
+    expect(buildDeliveryPath(config, { locale: 'it-IT', label: 'app', namespace: 'cart' }, 'k')).toBe(
+      '/delivery/acme-ecom/production/it-IT?namespace=cart&key=k',
+    );
+  });
+
   it('encodes characters that would break the query', () => {
-    expect(withKey('/p', 'a+b/c=d&e')).toBe('/p?key=a%2Bb%2Fc%3Dd%26e');
+    expect(buildDeliveryPath(config, { locale: 'it-IT', label: 'app' }, 'a+b/c=d&e')).toBe(
+      '/delivery/acme-ecom/production/it-IT?key=a%2Bb%2Fc%3Dd%26e',
+    );
   });
 });
 
