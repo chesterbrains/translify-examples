@@ -79,3 +79,19 @@ describe('PROBES', () => {
     ]);
   });
 });
+
+describe('unknown-query-param probe', () => {
+  const probe = PROBES.find((entry) => entry.id === 'unknown-query-param')!;
+
+  it('passes on the origin 400', () => {
+    expect(verdictOf(probe, [exchange(400)])).toBe('pass');
+  });
+
+  it('passes on the bundle the edge serves once junk parameters collapse onto the cached entry', () => {
+    expect(verdictOf(probe, [exchange(200, { 'common.ok': 'OK' })])).toBe('pass');
+  });
+
+  it('still fails on anything else', () => {
+    expect(verdictOf(probe, [exchange(401)])).toBe('fail');
+  });
+});

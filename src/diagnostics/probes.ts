@@ -97,9 +97,10 @@ export const PROBES: Probe[] = [
   {
     id: 'unknown-query-param',
     label: 'Unknown query parameter',
-    expectation: '400 — the global ValidationPipe is forbidNonWhitelisted',
+    expectation:
+      '400 at the origin (ValidationPipe is forbidNonWhitelisted), or the cached bundle once the edge has one — its cache key ignores unknown parameters on purpose, so junk cannot bypass it',
     run: (config) => one(config, 'probe: unknown query param', { extraQuery: { foo: 'bar' } }),
-    expect: ([exchange]) => exchange !== undefined && isHttp(exchange, 400),
+    expect: ([exchange]) => exchange !== undefined && (isHttp(exchange, 400) || isNonEmptyBundle(exchange)),
   },
   {
     id: 'burst',
