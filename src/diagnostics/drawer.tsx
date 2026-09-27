@@ -2,8 +2,7 @@ import { useState } from 'react';
 import type { DeliveryExchange, TranslifyConfig } from '../translify/types';
 import { PROBES, verdictOf, type Verdict } from './probes';
 import { clearExchanges, useExchanges, useMissingKeys } from './exchange-log';
-
-const maskKey = (key: string): string => `${'•'.repeat(8)}${key.slice(-4)}`;
+import { maskKey } from '../translify/client';
 
 const statusOf = (exchange: DeliveryExchange): string =>
   exchange.outcome.kind === 'network' ? 'network' : String(exchange.outcome.status);

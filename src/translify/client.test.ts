@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { TranslifyConfig } from './types';
-import { buildDeliveryPath, toExchange } from './client';
+import { buildDeliveryPath, fetchBundle, maskKey, toExchange, withKey } from './client';
 
 const config: TranslifyConfig = {
   baseUrl: 'http://localhost:3000/api',
@@ -58,5 +58,59 @@ describe('toExchange', () => {
   it('labels a very fast response as likely cache', () => {
     const exchange = toExchange({ ...base, ms: 1, status: 200, body: {} });
     expect(exchange.source).toBe('likely-cache');
+  });
+});
+
+describe('withKey', () => {
+  it('appends the key as the first parameter', () => {
+    expect(withKey('/delivery/a/b/it-IT', 'tlf_live_abc')).toBe('/delivery/a/b/it-IT?key=tlf_live_abc');
+  });
+
+  it('appends after existing parameters', () => {
+    expect(withKey('/delivery/a/b/it-IT?namespace=cart', 'k')).toBe('/delivery/a/b/it-IT?namespace=cart&key=k');
+  });
+
+  it('encodes characters that would break the query', () => {
+    expect(withKey('/p', 'a+b/c=d&e')).toBe('/p?key=a%2Bb%2Fc%3Dd%26e');
+  });
+});
+
+describe('fetchBundle', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const stubFetch = (): ReturnType<typeof vi.fn> => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    return fetchMock;
+  };
+
+  it('sends the key in the query string, not in a header', async () => {
+    const fetchMock = stubFetch();
+
+    await fetchBundle(config, { locale: 'it-IT', label: 'app' });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`http://localhost:3000/api/delivery/acme-ecom/production/it-IT?key=${config.apiKey}`);
+    expect(new Headers(init.headers).has('X-Api-Key')).toBe(false);
+  });
+
+  it('omits the key entirely for apiKey: null', async () => {
+    const fetchMock = stubFetch();
+
+    await fetchBundle(config, { locale: 'it-IT', label: 'probe', apiKey: null });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('http://localhost:3000/api/delivery/acme-ecom/production/it-IT');
+  });
+
+  it('records the path with the key masked', async () => {
+    stubFetch();
+
+    const exchange = await fetchBundle(config, { locale: 'it-IT', label: 'app' });
+
+    expect(exchange.path).toBe(`/delivery/acme-ecom/production/it-IT?key=${maskKey(config.apiKey)}`);
+    expect(exchange.path).not.toContain(config.apiKey);
   });
 });
