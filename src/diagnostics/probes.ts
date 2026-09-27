@@ -75,14 +75,14 @@ export const PROBES: Probe[] = [
   },
   {
     id: 'missing-key',
-    label: 'Missing X-Api-Key',
+    label: 'Missing key',
     expectation: '401',
     run: (config) => one(config, 'probe: missing key', { apiKey: null }),
     expect: ([exchange]) => exchange !== undefined && isHttp(exchange, 401),
   },
   {
     id: 'garbage-key',
-    label: 'Garbage X-Api-Key',
+    label: 'Garbage key',
     expectation: '401',
     run: (config) => one(config, 'probe: garbage key', { apiKey: 'tlf_live_not_a_real_key' }),
     expect: ([exchange]) => exchange !== undefined && isHttp(exchange, 401),

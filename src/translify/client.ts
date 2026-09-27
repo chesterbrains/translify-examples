@@ -9,7 +9,7 @@ export interface FetchParams {
   /** Overrides exist so probes can aim at deliberately wrong targets. */
   projectSlug?: string;
   envSlug?: string;
-  /** `null` omits the header entirely; `undefined` uses the configured key. */
+  /** `null` omits the key entirely; `undefined` uses the configured key. */
   apiKey?: string | null;
   extraQuery?: Record<string, string>;
   cache?: RequestCache;
@@ -24,6 +24,17 @@ export const buildDeliveryPath = (config: TranslifyConfig, params: FetchParams):
 
   return `/delivery/${projectSlug}/${envSlug}/${params.locale}${suffix}`;
 };
+
+/** Shows which key was used without showing the key. */
+export const maskKey = (key: string): string => `${'•'.repeat(8)}${key.slice(-4)}`;
+
+/**
+ * Appends the API key as `key=`. Since edge caching the key travels in the URL: the edge
+ * cache keys on it, and a request with no custom header needs no CORS preflight.
+ * `encode: false` is only for display, where the key is already masked.
+ */
+export const withKey = (path: string, key: string, encode: boolean = true): string =>
+  `${path}${path.includes('?') ? '&' : '?'}key=${encode ? encodeURIComponent(key) : key}`;
 
 /**
  * Below this, a response almost certainly came from the browser's HTTP cache.
@@ -63,16 +74,16 @@ export const fetchBundle = async (
   params: FetchParams,
 ): Promise<DeliveryExchange> => {
   const path = buildDeliveryPath(config, params);
-  const headers: Record<string, string> = {};
   const key = params.apiKey === undefined ? config.apiKey : params.apiKey;
-  if (key !== null) headers['X-Api-Key'] = key;
+  const requestPath = key === null ? path : withKey(path, key);
+  // The drawer shows `path`; it must never carry the raw key.
+  const shownPath = key === null ? path : withKey(path, maskKey(key), false);
 
   const started = performance.now();
   let exchange: DeliveryExchange;
 
   try {
-    const response = await fetch(`${config.baseUrl}${path}`, {
-      headers,
+    const response = await fetch(`${config.baseUrl}${requestPath}`, {
       cache: params.cache ?? 'default',
     });
     const text = await response.text();
@@ -84,7 +95,7 @@ export const fetchBundle = async (
     }
     exchange = toExchange({
       label: params.label,
-      path,
+      path: shownPath,
       ms: performance.now() - started,
       status: response.status,
       body,
@@ -94,7 +105,7 @@ export const fetchBundle = async (
     // TypeError with no status. The drawer says so rather than guessing.
     exchange = toExchange({
       label: params.label,
-      path,
+      path: shownPath,
       ms: performance.now() - started,
       error,
     });
