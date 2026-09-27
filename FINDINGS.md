@@ -23,8 +23,8 @@ Run in listed order, burst last, all observed via the drawer UI.
 | Wrong project slug | 404 | 404 | PASS |
 | Unknown environment slug | 404 | 404 | PASS |
 | Unknown or disabled locale | 404 | 404 | PASS |
-| Missing X-Api-Key | 401 | 401 | PASS |
-| Garbage X-Api-Key | 401 | 401 | PASS |
+| Missing key | 401 | 401 | PASS |
+| Garbage key | 401 | 401 | PASS |
 | Unknown namespace | 200 `{}` | 200 `{}` | PASS |
 | Unknown query parameter | 400 | 400 | PASS |
 | Burst of 40 | some 429 | mix of 200/429 — throttler tripped after roughly 20-22 of the 40 concurrent requests succeeded, remainder got 429 with body `"ThrottlerException: Too Many Requests"` | PASS |

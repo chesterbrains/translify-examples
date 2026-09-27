@@ -15,11 +15,13 @@ export interface FetchParams {
   cache?: RequestCache;
 }
 
-export const buildDeliveryPath = (config: TranslifyConfig, params: FetchParams): string => {
+/** `key`, when given, is appended as `key=` — the delivery contract since edge caching. */
+export const buildDeliveryPath = (config: TranslifyConfig, params: FetchParams, key?: string): string => {
   const projectSlug = params.projectSlug ?? config.projectSlug;
   const envSlug = params.envSlug ?? config.envSlug;
   const query = new URLSearchParams(params.extraQuery ?? {});
   if (params.namespace !== undefined) query.set('namespace', params.namespace);
+  if (key !== undefined) query.set('key', key);
   const suffix = query.size === 0 ? '' : `?${query.toString()}`;
 
   return `/delivery/${projectSlug}/${envSlug}/${params.locale}${suffix}`;
@@ -29,12 +31,12 @@ export const buildDeliveryPath = (config: TranslifyConfig, params: FetchParams):
 export const maskKey = (key: string): string => `${'•'.repeat(8)}${key.slice(-4)}`;
 
 /**
- * Appends the API key as `key=`. Since edge caching the key travels in the URL: the edge
- * cache keys on it, and a request with no custom header needs no CORS preflight.
- * `encode: false` is only for display, where the key is already masked.
+ * Appends an already-masked key as `key=` to a path for display. It is not encoded:
+ * URLSearchParams would turn the mask's bullets into percent escapes. Requests put the
+ * real key in through buildDeliveryPath.
  */
-export const withKey = (path: string, key: string, encode: boolean = true): string =>
-  `${path}${path.includes('?') ? '&' : '?'}key=${encode ? encodeURIComponent(key) : key}`;
+export const withKey = (path: string, maskedKey: string): string =>
+  `${path}${path.includes('?') ? '&' : '?'}key=${maskedKey}`;
 
 /**
  * Below this, a response almost certainly came from the browser's HTTP cache.
@@ -73,11 +75,13 @@ export const fetchBundle = async (
   config: TranslifyConfig,
   params: FetchParams,
 ): Promise<DeliveryExchange> => {
-  const path = buildDeliveryPath(config, params);
   const key = params.apiKey === undefined ? config.apiKey : params.apiKey;
-  const requestPath = key === null ? path : withKey(path, key);
+  // Since edge caching the key travels in the URL: the edge cache keys on it, and a
+  // request with no custom header needs no CORS preflight.
+  const requestPath = buildDeliveryPath(config, params, key ?? undefined);
   // The drawer shows `path`; it must never carry the raw key.
-  const shownPath = key === null ? path : withKey(path, maskKey(key), false);
+  const path = buildDeliveryPath(config, params);
+  const shownPath = key === null ? path : withKey(path, maskKey(key));
 
   const started = performance.now();
   let exchange: DeliveryExchange;
