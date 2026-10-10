@@ -22,6 +22,14 @@ void main() {
     expect(find.text('1 articolo'), findsOneWidget);
   });
 
+  testWidgets('Italian zero takes the other branch and shows the empty state', (tester) async {
+    await pumpIn(tester, const Locale('it'));
+    await tester.tap(find.byTooltip('fewer'));
+    await tester.pump();
+    expect(find.text('0 articoli'), findsOneWidget);
+    expect(find.text('Inizia a fare acquisti'), findsOneWidget);
+  });
+
   testWidgets('the plural follows the stepper, zero included', (tester) async {
     await pumpIn(tester, const Locale('en'));
     await tester.tap(find.byTooltip('more'));

@@ -15,7 +15,10 @@ pnpm install
 pnpm start                 # English, http://localhost:4200
 pnpm start:it              # Italian
 pnpm build && pnpm check   # both locales built; check asserts the output
+pnpm serve:dist            # http://localhost:8080/en-US/ and /it-IT/ from the built output
 ```
+
+The English/Italiano links switch between `/en-US/` and `/it-IT/`, which exist only in the built output: `ng serve` builds one locale at a time (and warns that it disabled `localize`), so under `pnpm start` the links go nowhere. Use `pnpm start:it` for Italian in development, or `pnpm serve:dist` to try both.
 
 ## The key contract: `@@id`
 
@@ -45,6 +48,8 @@ Angular writes `{{ }}` interpolations as `<ph>` units and template ICU as `{VAR_
 2. `pnpm exec ng extract-i18n --format=xlf2 --output-path src/locale --out-file messages.en-US.xlf`
 3. `npx translify push` — the server accepts a source-only XLIFF for the default locale.
 4. Translate `newKey` in Translify, then `npx translify pull`.
+
+Between steps 2 and 4 the extracted `messages.en-US.xlf` holds only the keys the templates use, so `itemCount` and `greeting` (catalog keys this app does not render) are missing from it and `translify status` reports drift; step 4 restores the full file. Do not run `push --prune` from this folder: it would offer to delete those two keys for the whole project (refused only while they are published).
 
 ## In CI
 

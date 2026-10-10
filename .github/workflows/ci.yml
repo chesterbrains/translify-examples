@@ -9,7 +9,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Only PR runs are superseded by a newer push; a scheduled drift run must never be cancelled by a merge.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   react-i18next-runtime:
@@ -24,14 +25,8 @@ jobs:
         with: { node-version: 22, cache: pnpm, cache-dependency-path: examples/react-i18next-runtime/pnpm-lock.yaml }
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
-      # readConfig runs at build time, so the build needs every VITE_* value; the key never reaches the network here.
+      # The VITE_* values are read at page load, not at build time, so the build needs none of them.
       - run: pnpm build
-        env:
-          VITE_TRANSLIFY_API_KEY: pk_ci_placeholder
-          VITE_TRANSLIFY_BASE_URL: https://translify.tommasofeltrin.work/api
-          VITE_TRANSLIFY_PROJECT_SLUG: acme-ecom
-          VITE_TRANSLIFY_ENV_SLUG: production
-          VITE_TRANSLIFY_LOCALES: en-US,it-IT
 
   flutter-arb:
     if: github.event_name != 'schedule'
@@ -62,6 +57,7 @@ jobs:
       - run: pnpm check
 
   # Weekly, not per PR: Actions minutes are a shared pool across the Translify repos.
+  # The CLI is pinned so a breaking 0.x release cannot turn this job red for reasons unrelated to drift.
   drift:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -70,14 +66,14 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: catalog
-        run: npx translify status
+        run: npx -y @chesterbrains/translify-cli@0.4.1 status
         working-directory: catalog
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: flutter-arb
-        run: npx translify status
+        run: npx -y @chesterbrains/translify-cli@0.4.1 status
         working-directory: examples/flutter-arb
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: angular-xliff
-        run: npx translify status
+        run: npx -y @chesterbrains/translify-cli@0.4.1 status
         working-directory: examples/angular-xliff
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
