@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { setForceRevalidate } from '../translify/backend';
 
-export const LocaleSwitcher = ({ locales }: { locales: string[] }): React.ReactNode => {
+export const LocaleSwitcher = ({
+  locales,
+  showRevalidate,
+}: {
+  locales: string[];
+  /** The cache-busting button belongs to diagnostics mode, not the example. */
+  showRevalidate: boolean;
+}): React.ReactNode => {
   const { t, i18n } = useTranslation();
   const labelFor = (locale: string): string => (locale.startsWith('it') ? t('localeIt') : t('localeEn'));
   const [busy, setBusy] = useState(false);
@@ -43,14 +50,16 @@ export const LocaleSwitcher = ({ locales }: { locales: string[] }): React.ReactN
           {labelFor(locale)}
         </button>
       ))}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={revalidate}
-        className="rounded border border-neutral-300 px-3 py-1 text-sm"
-      >
-        Force revalidate
-      </button>
+      {showRevalidate && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={revalidate}
+          className="rounded border border-neutral-300 px-3 py-1 text-sm"
+        >
+          Force revalidate
+        </button>
+      )}
     </div>
   );
 };
