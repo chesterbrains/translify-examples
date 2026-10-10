@@ -1,4 +1,8 @@
-# Findings
+# Delivery contract check
+
+A dated, reproducible run of the diagnostics drawer's probes against the delivery endpoint. To re-run: start the runtime example with `?diagnostics` in the URL (see README), run every probe, and replace the table below with what you observed.
+
+## Run of 2026-09-02
 
 Run on 2026-09-02 against http://localhost:3000/api, commit 92f5e51 of translify-sdk-demo.
 
