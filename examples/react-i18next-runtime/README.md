@@ -31,16 +31,51 @@ A **delivery key** is not a secret key: it only reads published bundles of one p
 
 ## The integration (all of it)
 
-`src/translify/backend.ts` is an i18next backend module. One delivery request per (language, namespace):
+`src/translify/backend.ts` is an i18next backend module. One delivery request per (language, namespace); this is the whole of it, minus the cache-busting toggle the drawer uses:
 
 ```ts
-read(language, namespace, callback) {
-  fetchBundle(config, { locale: language, namespace, … }).then((exchange) => {
-    …
-    callback(null, stripNamespace(exchange.outcome.body, namespace));
-  });
-}
+import type { BackendModule, ReadCallback } from 'i18next';
+
+/** A delivery bundle as served: flat `<namespace>.<keyName>` -> value. */
+type Bundle = Record<string, string>;
+
+const isBundle = (body: unknown): body is Bundle =>
+  typeof body === 'object' && body !== null && !Array.isArray(body);
+
+/** Delivery names every key `<namespace>.<keyName>`; i18next wants the bare key inside the namespace. */
+export const stripNamespace = (bundle: Bundle, namespace: string): Bundle => {
+  const prefix = `${namespace}.`;
+
+  return Object.fromEntries(
+    Object.entries(bundle)
+      .filter(([key]) => key.startsWith(prefix))
+      .map(([key, value]) => [key.slice(prefix.length), value]),
+  );
+};
+
+export const createBackend = (config: TranslifyConfig): BackendModule => ({
+  type: 'backend',
+  init() {},
+  read(language: string, namespace: string, callback: ReadCallback): void {
+    // GET {baseUrl}/delivery/{project}/{env}/{language}?namespace={namespace}&key={pk_…}
+    void fetchBundle(config, { locale: language, namespace, label: `app: ${language}/${namespace}` })
+      .then((exchange) => {
+        if (exchange.outcome.kind === 'network') {
+          callback(new Error(`network or CORS failure: ${exchange.outcome.message}`), false);
+          return;
+        }
+        if (exchange.outcome.status !== 200 || !isBundle(exchange.outcome.body)) {
+          callback(new Error(`delivery returned ${exchange.outcome.status}`), false);
+          return;
+        }
+        callback(null, stripNamespace(exchange.outcome.body, namespace));
+      })
+      .catch((error: unknown) => callback(error instanceof Error ? error : new Error(String(error)), false));
+  },
+});
 ```
+
+`fetchBundle` (`src/translify/client.ts`) is a thin `fetch` that builds that URL and records the exchange for the diagnostics drawer. Wire it up with `i18next.use(ICU).use(createBackend(config)).init(…)`.
 
 - i18next's `ns: ['cart']` maps 1:1 to Translify namespaces; `?namespace=` is the only query parameter delivery takes.
 - Delivery names keys `cart.cartTitle`; `stripNamespace` makes them `cartTitle` inside the `cart` namespace.
