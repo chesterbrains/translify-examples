@@ -1,38 +1,41 @@
-# translify-sdk-demo
+# Translify examples
 
-A small consumer of the Translify delivery endpoint, built to answer one
-question: does a project created in `translify-fe` and published to an
-environment actually reach an outside client?
+Complete, copyable apps showing how to use [Translify](https://translify.tommasofeltrin.work) from a repository: one catalog pushed with the CLI, published once, consumed three ways.
 
-It renders a cart screen through i18next from a published bundle, and carries a
-diagnostics drawer that probes the endpoint's failure modes against declared
-expectations.
+| Example | Style | Format | Toolchain | Shows |
+|---|---|---|---|---|
+| [`examples/react-i18next-runtime`](examples/react-i18next-runtime) | **runtime** | JSON (delivery endpoint) | Vite · React · i18next | custom i18next backend, `?namespace=`, ICU plural, caching, diagnostics drawer |
+| [`examples/flutter-arb`](examples/flutter-arb) | build-time | ARB | Flutter `gen-l10n` | `translify pull`, `locales` map, `@@locale`, ICU plural |
+| [`examples/angular-xliff`](examples/angular-xliff) | build-time | XLIFF 2.0 | `@angular/localize` | `translify pull`, `@@id` key contract, `ng build --localize`, push from `ng extract-i18n` |
 
-## Setup
+## Which style?
 
-```sh
-pnpm install
-cp .env.example .env   # fill in a real API key
-pnpm dev
-```
+- **Runtime**: the app fetches the published bundle from `/api/delivery/…` with a delivery key. Publish → live, no release. Web apps; JSON only.
+- **Build-time**: `translify pull` in CI writes native files (ARB, XLIFF, JSON) and the platform compiles them in. Needed where strings are compiled (Flutter, Angular), or when you want zero runtime dependency.
 
-The app needs data that already exists: project `acme-ecom`, environment
-`production` (published), locales `en-US` and `it-IT`, and namespace `cart`
-with the keys `title`, `empty.cta`, `totals.total`. Create them through the
-`translify-fe` UI first.
+Both start from the same catalog.
 
-## Scripts
+## Get started
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | Vite dev server on http://localhost:5173 |
-| `pnpm build` | Type-check then build |
-| `pnpm test` | Vitest over the pure modules |
+1. In Translify, create an empty project with slug **`acme-ecom`**, locales **`en-US`** (default) and **`it-IT`**, and an environment **`production`**.
+2. Create a **secret key** with scopes `PUSH`, `PUBLISH`, `PULL`, then `export TRANSLIFY_SECRET_KEY=sk_…`.
+3. Seed and publish:
 
-Tests cover configuration validation, exchange construction, and probe
-verdicts. The delivery endpoint is never mocked — the probes run live, which is
-the entire point.
+   ```sh
+   cd catalog
+   npx translify push
+   npx translify publish production
+   ```
 
-## Results
+4. Pick an example from the table. Each folder is self-contained, with its own README.
 
-See `FINDINGS.md`.
+`catalog/` is the source of truth: one namespace `cart`, nine keys, in flat JSON. Keys are camelCase identifiers so the same catalog pulls as JSON, ARB and XLIFF unchanged (Flutter's `gen-l10n` needs Dart identifiers).
+
+## Reference
+
+- [CLI README](https://github.com/chesterbrains/translify-cli): `translify.json` fields, every command, prune safety, exit and error codes.
+- [App docs](https://translify.tommasofeltrin.work/docs): delivery API and CLI quickstart.
+
+## Licence
+
+MIT.
