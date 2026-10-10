@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en-US" trgLang="it-IT">
+  <file id="f1">
+    <unit id="cartTitle" name="cartTitle">
+      <segment>
+        <source>Your cart</source>
+        <target>Il tuo carrello</target>
+      </segment>
+    </unit>
+    <unit id="checkout" name="checkout">
+      <segment>
+        <source>Checkout</source>
+        <target>Vai al pagamento</target>
+      </segment>
+    </unit>
+    <unit id="continueShopping" name="continueShopping">
+      <segment>
+        <source>Continue shopping</source>
+        <target>Continua lo shopping</target>
+      </segment>
+    </unit>
+    <unit id="emptyCta" name="emptyCta">
+      <segment>
+        <source>Start shopping</source>
+        <target>Inizia a fare acquisti</target>
+      </segment>
+    </unit>
+    <unit id="greeting" name="greeting">
+      <segment>
+        <source>Hello, {name}</source>
+        <target>Ciao, {name}</target>
+      </segment>
+    </unit>
+    <unit id="itemCount" name="itemCount">
+      <segment>
+        <source>{count, plural, one {{count} item} other {{count} items}}</source>
+        <target>{count, plural, one {{count} articolo} other {{count} articoli}}</target>
+      </segment>
+    </unit>
+    <unit id="localeEn" name="localeEn">
+      <segment>
+        <source>English</source>
+        <target>English</target>
+      </segment>
+    </unit>
+    <unit id="localeIt" name="localeIt">
+      <segment>
+        <source>Italiano</source>
+        <target>Italiano</target>
+      </segment>
+    </unit>
+    <unit id="totalsTotal" name="totalsTotal">
+      <segment>
+        <source>Total</source>
+        <target>Totale</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
+  "apiUrl": "https://translify.tommasofeltrin.work/api",
+  "files": [{ "pattern": "lib/l10n/app_{locale}.arb", "format": "arb", "namespace": "cart" }],
+  "locales": { "en": "en-US", "it": "it-IT" }
+}
