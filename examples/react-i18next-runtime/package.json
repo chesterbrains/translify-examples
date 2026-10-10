@@ -1,17 +1,16 @@
 {
-  "name": "translify-sdk-demo",
+  "name": "react-i18next-runtime",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Translify runtime example: i18next backend over the delivery endpoint",
+  "license": "MIT",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
@@ -20,7 +19,6 @@
     }
   },
   "packageManager": "pnpm@11.23.0",
-  "type": "module",
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "i18next": "^26.4.1",
