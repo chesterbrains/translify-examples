@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
+  "apiUrl": "https://translify.tommasofeltrin.work/api",
+  "files": [
+    { "pattern": "locales/{locale}/{namespace}.json", "format": "json", "jsonStyle": "flat" }
+  ]
+}

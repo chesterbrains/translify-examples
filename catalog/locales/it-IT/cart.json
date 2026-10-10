@@ -1,0 +1,11 @@
+{
+  "cartTitle": "Il tuo carrello",
+  "checkout": "Vai al pagamento",
+  "continueShopping": "Continua lo shopping",
+  "emptyCta": "Inizia a fare acquisti",
+  "greeting": "Ciao, {name}",
+  "itemCount": "{count, plural, one {{count} articolo} other {{count} articoli}}",
+  "localeEn": "English",
+  "localeIt": "Italiano",
+  "totalsTotal": "Totale"
+}

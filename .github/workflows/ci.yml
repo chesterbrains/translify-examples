@@ -1,0 +1,82 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC: drift check only
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  react-i18next-runtime:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: examples/react-i18next-runtime } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: examples/react-i18next-runtime/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      # readConfig runs at build time, so the build needs every VITE_* value; the key never reaches the network here.
+      - run: pnpm build
+        env:
+          VITE_TRANSLIFY_API_KEY: pk_ci_placeholder
+          VITE_TRANSLIFY_BASE_URL: https://translify.tommasofeltrin.work/api
+          VITE_TRANSLIFY_PROJECT_SLUG: acme-ecom
+          VITE_TRANSLIFY_ENV_SLUG: production
+          VITE_TRANSLIFY_LOCALES: en-US,it-IT
+
+  flutter-arb:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: examples/flutter-arb } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: flutter gen-l10n
+      - run: flutter analyze
+      - run: flutter test
+
+  angular-xliff:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: examples/angular-xliff } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: examples/angular-xliff/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm check
+
+  # Weekly, not per PR: Actions minutes are a shared pool across the Translify repos.
+  drift:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: catalog
+        run: npx translify status
+        working-directory: catalog
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
+      - name: flutter-arb
+        run: npx translify status
+        working-directory: examples/flutter-arb
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
+      - name: angular-xliff
+        run: npx translify status
+        working-directory: examples/angular-xliff
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }

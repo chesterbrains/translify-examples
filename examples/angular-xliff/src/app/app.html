@@ -1,0 +1,28 @@
+<main class="cart">
+  <h1 i18n="@@cartTitle">Your cart</h1>
+
+  <div class="stepper">
+    <button type="button" (click)="fewer()" aria-label="fewer">−</button>
+    <span>{{ count() }}</span>
+    <button type="button" (click)="more()" aria-label="more">+</button>
+  </div>
+
+  @if (count() === 0) {
+    <p i18n="@@emptyCta">Start shopping</p>
+  } @else {
+    <div class="totals">
+      <span i18n="@@totalsTotal">Total</span>
+      <span>{{ (count() * 12.5).toFixed(2) }} €</span>
+    </div>
+  }
+
+  <div class="actions">
+    <button type="button" i18n="@@checkout">Checkout</button>
+    <button type="button" i18n="@@continueShopping">Continue shopping</button>
+  </div>
+
+  <nav class="locales">
+    <a href="/en-US/" i18n="@@localeEn">English</a>
+    <a href="/it-IT/" i18n="@@localeIt">Italiano</a>
+  </nav>
+</main>
