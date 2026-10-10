@@ -1,35 +1,36 @@
-import i18next, { type i18n } from 'i18next';
+import i18next, { type i18n, type InitOptions } from 'i18next';
+import ICU from 'i18next-icu';
 import { initReactI18next } from 'react-i18next';
 import type { TranslifyConfig } from './translify/types';
 import { createBackend } from './translify/backend';
 import { appendMissingKey } from './diagnostics/exchange-log';
 
 /**
- * Bundle keys arrive flat as `namespace.keyName`, so both separators are off —
- * with the defaults, `t('cart.title')` does a nested lookup and misses.
- * `load: 'currentOnly'` stops `it-IT` being truncated to a locale that is not enabled.
+ * One i18next namespace per Translify namespace (`cart`), bare keys inside it.
+ * `keySeparator: false` because catalog keys are flat identifiers; `load: 'currentOnly'`
+ * stops `it-IT` being truncated to a locale that is not enabled in the project.
  */
-export const initI18n = async (config: TranslifyConfig): Promise<i18n> => {
-  await i18next
-    .use(createBackend(config))
-    .use(initReactI18next)
-    .init({
-      supportedLngs: config.locales,
-      lng: config.locales[0],
-      fallbackLng: config.locales[0],
-      load: 'currentOnly',
-      keySeparator: false,
-      nsSeparator: false,
-      ns: ['translation'],
-      defaultNS: 'translation',
-      interpolation: { escapeValue: false },
-      react: { useSuspense: false },
-      parseMissingKeyHandler: (key: string): string => {
-        appendMissingKey(key);
+export const I18N_OPTIONS = (locales: string[]): InitOptions => ({
+  supportedLngs: locales,
+  lng: locales[0],
+  fallbackLng: locales[0],
+  load: 'currentOnly',
+  keySeparator: false,
+  nsSeparator: ':',
+  ns: ['cart'],
+  defaultNS: 'cart',
+  interpolation: { escapeValue: false },
+  react: { useSuspense: false },
+  parseMissingKeyHandler: (key: string): string => {
+    appendMissingKey(key);
 
-        return `⟨${key}⟩`;
-      },
-    });
+    return `⟨${key}⟩`;
+  },
+});
+
+/** Plurals and arguments are ICU in Translify, so i18next formats them with ICU too. */
+export const initI18n = async (config: TranslifyConfig): Promise<i18n> => {
+  await i18next.use(ICU).use(createBackend(config)).use(initReactI18next).init(I18N_OPTIONS(config.locales));
 
   return i18next;
 };
@@ -41,10 +42,15 @@ export const initI18n = async (config: TranslifyConfig): Promise<i18n> => {
  * language alone, with fallback off for the check only, so that case is
  * still recorded even though `t()` still renders the fallback value.
  */
-export const translateAndDiagnose = (instance: i18n, t: (key: string) => string, key: string): string => {
+export const translateAndDiagnose = (
+  instance: i18n,
+  t: (key: string, options?: Record<string, unknown>) => string,
+  key: string,
+  options?: Record<string, unknown>,
+): string => {
   if (!instance.exists(key, { lng: instance.language, fallbackLng: false })) {
     appendMissingKey(key);
   }
 
-  return t(key);
+  return t(key, options);
 };
