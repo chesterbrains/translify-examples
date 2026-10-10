@@ -9,7 +9,7 @@ import { LocaleSwitcher } from './locale-switcher';
 export const App = ({ config }: { config: TranslifyConfig }): React.ReactNode => {
   const { i18n } = useTranslation();
   const exchanges = useExchanges();
-  const lastAppExchange = [...exchanges].reverse().find((entry) => entry.label === `app: ${i18n.language}`);
+  const lastAppExchange = [...exchanges].reverse().find((entry) => entry.label.startsWith(`app: ${i18n.language}/`));
   const failed =
     lastAppExchange !== undefined &&
     (lastAppExchange.outcome.kind === 'network' || lastAppExchange.outcome.status !== 200);

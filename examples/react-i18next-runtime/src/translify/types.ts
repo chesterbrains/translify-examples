@@ -8,7 +8,7 @@ export interface TranslifyConfig {
   locales: string[];
 }
 
-/** A delivery bundle: flat `namespace.keyName` -> value. */
+/** A delivery bundle as served: flat `<namespace>.<keyName>` -> value. */
 export type Bundle = Record<string, string>;
 
 /** What came back. A network outcome carries no status — the browser never saw one. */

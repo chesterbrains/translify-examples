@@ -13,18 +13,34 @@ const isBundle = (body: unknown): body is Bundle =>
   typeof body === 'object' && body !== null && !Array.isArray(body);
 
 /**
- * Loads one locale's whole published bundle as i18next's single namespace.
- * The delivery `?namespace=` filter is exercised by the probes, not here.
+ * The delivery endpoint names every key `<namespace>.<keyName>`, with or without a
+ * `?namespace=` filter. i18next wants the bare key inside the namespace, so the prefix
+ * goes; a key from any other namespace is dropped rather than mis-filed.
+ */
+export const stripNamespace = (bundle: Bundle, namespace: string): Bundle => {
+  const prefix = `${namespace}.`;
+
+  return Object.fromEntries(
+    Object.entries(bundle)
+      .filter(([key]) => key.startsWith(prefix))
+      .map(([key, value]) => [key.slice(prefix.length), value]),
+  );
+};
+
+/**
+ * One delivery request per (language, namespace): i18next's `ns` list maps 1:1 to
+ * Translify namespaces, and `?namespace=` is the only query parameter delivery takes.
  */
 export const createBackend = (config: TranslifyConfig): BackendModule => ({
   type: 'backend',
   init(_services: Services, _backendOptions: unknown, _i18nextOptions: InitOptions): void {
     // Nothing to set up: the client is configured by closure.
   },
-  read(language: string, _namespace: string, callback: ReadCallback): void {
+  read(language: string, namespace: string, callback: ReadCallback): void {
     void fetchBundle(config, {
       locale: language,
-      label: `app: ${language}`,
+      namespace,
+      label: `app: ${language}/${namespace}`,
       cache: forceRevalidate ? 'reload' : 'default',
     }).then((exchange) => {
       if (exchange.outcome.kind === 'network') {
@@ -37,7 +53,7 @@ export const createBackend = (config: TranslifyConfig): BackendModule => ({
 
         return;
       }
-      callback(null, exchange.outcome.body);
+      callback(null, stripNamespace(exchange.outcome.body, namespace));
     }).catch((error: unknown) => {
       callback(error instanceof Error ? error : new Error(String(error)), false);
     });
