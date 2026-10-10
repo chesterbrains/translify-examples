@@ -5,10 +5,15 @@ import { DiagnosticsDrawer } from '../diagnostics/drawer';
 import { DeliveryErrorCard } from './delivery-error-card';
 import { CartPage } from './cart-page';
 import { LocaleSwitcher } from './locale-switcher';
+import { diagnosticsEnabled } from './diagnostics-flag';
 
 export const App = ({ config }: { config: TranslifyConfig }): React.ReactNode => {
   const { i18n } = useTranslation();
   const exchanges = useExchanges();
+  const diagnostics = diagnosticsEnabled(
+    window.location.search,
+    import.meta.env as Record<string, string | undefined>,
+  );
   const lastAppExchange = [...exchanges].reverse().find((entry) => entry.label.startsWith(`app: ${i18n.language}/`));
   const failed =
     lastAppExchange !== undefined &&
@@ -20,14 +25,10 @@ export const App = ({ config }: { config: TranslifyConfig }): React.ReactNode =>
         <h1 className="text-xl font-semibold">
           {config.projectSlug} / {config.envSlug}
         </h1>
-        <LocaleSwitcher locales={config.locales} />
+        <LocaleSwitcher locales={config.locales} showRevalidate={diagnostics} />
       </header>
-      {failed && lastAppExchange !== undefined ? (
-        <DeliveryErrorCard exchange={lastAppExchange} />
-      ) : (
-        <CartPage />
-      )}
-      <DiagnosticsDrawer config={config} />
+      {failed && lastAppExchange !== undefined ? <DeliveryErrorCard exchange={lastAppExchange} /> : <CartPage />}
+      {diagnostics && <DiagnosticsDrawer config={config} />}
     </main>
   );
 };
