@@ -34,7 +34,7 @@ read(language, namespace, callback) {
 
 - i18next's `ns: ['cart']` maps 1:1 to Translify namespaces; `?namespace=` is the only query parameter delivery takes.
 - Delivery names keys `cart.cartTitle`; `stripNamespace` makes them `cartTitle` inside the `cart` namespace.
-- Plurals and arguments are ICU in Translify (`{count, plural, one {# item} other {# items}}`), so the app uses `i18next-icu`. `src/i18n.ts` holds the options.
+- Plurals and arguments are ICU in Translify (`{count, plural, one {{count} item} other {{count} items}}`), so the app uses `i18next-icu`. `src/i18n.ts` holds the options.
 - The key travels as `?key=` so the edge cache can key on it and the request needs no CORS preflight.
 
 ## What delivery guarantees

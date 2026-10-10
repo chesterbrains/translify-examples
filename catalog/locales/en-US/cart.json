@@ -4,7 +4,7 @@
   "continueShopping": "Continue shopping",
   "emptyCta": "Start shopping",
   "greeting": "Hello, {name}",
-  "itemCount": "{count, plural, one {# item} other {# items}}",
+  "itemCount": "{count, plural, one {{count} item} other {{count} items}}",
   "localeEn": "English",
   "localeIt": "Italiano",
   "totalsTotal": "Total"

@@ -8,8 +8,8 @@ const makeInstance = async (): Promise<i18n> => {
   await instance.use(ICU).init({
     ...I18N_OPTIONS(['en-US', 'it-IT']),
     resources: {
-      'en-US': { cart: { cartTitle: 'Your cart', itemCount: '{count, plural, one {# item} other {# items}}' } },
-      'it-IT': { cart: { cartTitle: 'Il tuo carrello', itemCount: '{count, plural, one {# articolo} other {# articoli}}' } },
+      'en-US': { cart: { cartTitle: 'Your cart', itemCount: '{count, plural, one {{count} item} other {{count} items}}' } },
+      'it-IT': { cart: { cartTitle: 'Il tuo carrello', itemCount: '{count, plural, one {{count} articolo} other {{count} articoli}}' } },
     },
   });
 
