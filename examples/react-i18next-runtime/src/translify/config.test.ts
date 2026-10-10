@@ -27,6 +27,8 @@ describe('readConfig', () => {
   it('defaults the base URL when it is absent', () => {
     const result = readConfig({ ...complete, VITE_TRANSLIFY_BASE_URL: undefined });
     expect(result.ok && result.config.baseUrl).toBe(DEFAULT_BASE_URL);
+    // The public API, not a developer's localhost: a visitor who sets only the key must reach Translify.
+    expect(DEFAULT_BASE_URL).toBe('https://translify.tommasofeltrin.work/api');
   });
 
   it('strips a trailing slash from the base URL', () => {

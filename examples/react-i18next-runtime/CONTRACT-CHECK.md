@@ -4,6 +4,8 @@ A dated, reproducible run of the diagnostics drawer's probes against the deliver
 
 ## Run of 2026-09-02
 
+> Historical. This run predates the catalog in this repo (keys were `title`, `empty.cta`, `totals.total`) and two backend changes since: the delivery throttle is now 300 requests / 60 s per IP (the burst probe now expects every call served), and `Cache-Control` is `max-age=30`. Everything else still holds; re-run the probes to refresh this table.
+
 Run on 2026-09-02 against http://localhost:3000/api, commit 92f5e51 of translify-sdk-demo.
 
 ## Does the chain work?

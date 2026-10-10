@@ -12,9 +12,19 @@ browser ──GET /api/delivery/acme-ecom/production/it-IT?namespace=cart&key=pk
 Seed the project first ([root README](../../README.md), steps 1–3). Then:
 
 ```sh
-cp .env.example .env     # set VITE_TRANSLIFY_API_KEY to a delivery key (pk_…)
+cp .env.example .env     # then fill it in, see below
 pnpm install
 pnpm dev                 # http://localhost:5173
+```
+
+`.env`:
+
+```
+VITE_TRANSLIFY_API_KEY=pk_…                                   # delivery key: project → API keys → New key → Publishable
+VITE_TRANSLIFY_BASE_URL=https://translify.tommasofeltrin.work/api
+VITE_TRANSLIFY_PROJECT_SLUG=acme-ecom
+VITE_TRANSLIFY_ENV_SLUG=production
+VITE_TRANSLIFY_LOCALES=en-US,it-IT
 ```
 
 A **delivery key** is not a secret key: it only reads published bundles of one project, it is meant to ship in a browser bundle, and you revoke it in Translify. Secret keys (`sk_…`) never belong in a frontend.
@@ -39,14 +49,14 @@ read(language, namespace, callback) {
 
 ## What delivery guarantees
 
-- `Cache-Control: public, max-age=60` and an edge cache in front: repeat loads inside a minute come from cache. The "Force revalidate" button (diagnostics mode) bypasses the browser cache.
+- `Cache-Control: public, max-age=30, s-maxage=30` and an edge cache in front: repeat loads inside 30 s come from cache, and the origin keeps a bundle for 5 minutes. The "Force revalidate" button (diagnostics mode) bypasses the browser cache.
 - An `ETag` is sent, but a browser cannot read it cross-origin yet (it is not in `Access-Control-Expose-Headers`), so conditional requests are not possible from page JavaScript. Tracked as TRLIFY-97.
 - Wrong project, environment or locale: `404` with no detail. Missing or revoked key: `401`. Unknown namespace: `200 {}`.
-- Rate limit: 30 requests / 60 s per IP across the API. Cache locally and normal traffic stays far below it.
+- Rate limits on delivery: 300 requests / 60 s per IP and 6000 / 60 s per key, answered with `429`. Ordinary traffic never meets them; the diagnostics burst of 40 proves it.
 
 ## Diagnostics
 
-Open `http://localhost:5173/?diagnostics` (or set `VITE_DIAGNOSTICS=1`) to mount the drawer: every delivery exchange the app made, a list of keys the app asked for and did not get, and probes that hit the endpoint's failure modes on purpose (wrong slug, bad key, unknown namespace, burst of 40). [`CONTRACT-CHECK.md`](CONTRACT-CHECK.md) is a dated run of those probes.
+Open `http://localhost:5173/?diagnostics` (or set `VITE_DIAGNOSTICS=1`) to mount the drawer: every delivery exchange the app made, a list of keys the app asked for and did not get, and probes that hit the endpoint's failure modes on purpose (wrong slug, bad key, unknown namespace) plus a burst of 40 that must be served in full. [`CONTRACT-CHECK.md`](CONTRACT-CHECK.md) is a dated run of those probes.
 
 ## Tests
 

@@ -1,6 +1,6 @@
 import type { TranslifyConfig } from './types';
 
-export const DEFAULT_BASE_URL = 'http://localhost:3000/api';
+export const DEFAULT_BASE_URL = 'https://translify.tommasofeltrin.work/api';
 
 export type ConfigResult =
   | { ok: true; config: TranslifyConfig }

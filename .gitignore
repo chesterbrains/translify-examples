@@ -3,3 +3,6 @@ dist/
 .env
 .idea/
 .DS_Store
+# local-only planning artefacts and the executor workspace (holds credentials)
+.superpowers/
+docs/superpowers/

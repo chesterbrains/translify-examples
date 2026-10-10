@@ -45,6 +45,7 @@ jobs:
       - run: flutter gen-l10n
       - run: flutter analyze
       - run: flutter test
+      - run: flutter build web # the README's run target; a missing platform folder fails here, not on a visitor
 
   angular-xliff:
     if: github.event_name != 'schedule'

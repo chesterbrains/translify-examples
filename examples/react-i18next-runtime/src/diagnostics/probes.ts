@@ -41,7 +41,11 @@ const one = async (
   await fetchBundle(config, { locale: config.locales[0]!, label, cache: 'reload', ...overrides }),
 ];
 
-/** Throttler is 30/60s per IP and the page shares that budget, so overshoot. */
+/**
+ * Delivery allows 300 requests per 60 s per IP (6000 per key), so a burst of 40 must be
+ * served in full: the probe proves ordinary traffic never meets the throttler. Push it
+ * past 300 to watch the 429s instead.
+ */
 export const BURST_SIZE = 40;
 
 export const PROBES: Probe[] = [
@@ -105,7 +109,7 @@ export const PROBES: Probe[] = [
   {
     id: 'burst',
     label: `Burst of ${BURST_SIZE} calls`,
-    expectation: 'at least one 429 from the global throttler — run this last',
+    expectation: 'every call served (200) — 40 is under the 300/60 s per-IP delivery limit; run this last',
     run: async (config) =>
       Promise.all(
         Array.from({ length: BURST_SIZE }, (_unused, index) =>
@@ -116,6 +120,6 @@ export const PROBES: Probe[] = [
           }),
         ),
       ),
-    expect: (exchanges) => anyStatus(exchanges, 429),
+    expect: (exchanges) => exchanges.length === BURST_SIZE && exchanges.every(isNonEmptyBundle),
   },
 ];
