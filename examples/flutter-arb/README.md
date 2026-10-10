@@ -12,7 +12,7 @@ The pulled ARB files are committed, so this works with no key:
 
 ```sh
 flutter pub get      # also runs gen-l10n (pubspec: generate: true)
-flutter run
+flutter run -d chrome   # the web target is committed; add others with: flutter create . --platforms ios,android
 flutter test
 ```
 
@@ -42,7 +42,7 @@ npx translify pull && flutter gen-l10n
 ```yaml
 - uses: subosito/flutter-action@v2
   with: { channel: stable }
-- run: npx translify pull && flutter gen-l10n && flutter test
+- run: npx translify pull && flutter gen-l10n && flutter test && flutter build web
   env:
     TRANSLIFY_SECRET_KEY: ${{ secrets.TRANSLIFY_SECRET_KEY }}
 ```

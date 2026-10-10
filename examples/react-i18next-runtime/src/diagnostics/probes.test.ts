@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DeliveryExchange } from '../translify/types';
-import { anyStatus, isEmptyBundle, isHttp, isNonEmptyBundle, PROBES, verdictOf } from './probes';
+import { anyStatus, BURST_SIZE, isEmptyBundle, isHttp, isNonEmptyBundle, PROBES, verdictOf } from './probes';
 
 const exchange = (status: number, body: unknown = {}): DeliveryExchange => ({
   id: 'x',
@@ -77,6 +77,18 @@ describe('PROBES', () => {
       'unknown-query-param',
       'burst',
     ]);
+  });
+});
+
+describe('burst probe', () => {
+  const probe = PROBES.find((entry) => entry.id === 'burst')!;
+
+  it('passes when every call in the burst is served: 40 is well under the 300/60 s per-IP limit', () => {
+    expect(verdictOf(probe, Array.from({ length: BURST_SIZE }, () => exchange(200, { 'cart.cartTitle': 'x' })))).toBe('pass');
+  });
+
+  it('fails if the throttler trips below its documented limit', () => {
+    expect(verdictOf(probe, [exchange(200, { 'cart.cartTitle': 'x' }), exchange(429)])).toBe('fail');
   });
 });
 

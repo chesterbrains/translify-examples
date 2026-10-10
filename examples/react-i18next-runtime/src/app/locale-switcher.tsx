@@ -20,7 +20,7 @@ export const LocaleSwitcher = ({
   };
 
   /**
-   * `Cache-Control: public, max-age=60` means a repeat request inside a minute is
+   * `Cache-Control: public, max-age=30` means a repeat request inside 30 s is
    * served from the browser's HTTP cache with no network row in the log. This
    * forces a real round trip so the cache is observable rather than invisible.
    */
