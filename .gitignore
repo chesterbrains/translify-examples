@@ -1,7 +1,5 @@
 node_modules/
 dist/
 .env
-*.local
-tsconfig.tsbuildinfo
 .idea/
 .DS_Store
