@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { setForceRevalidate } from '../translify/backend';
 
 export const LocaleSwitcher = ({ locales }: { locales: string[] }): React.ReactNode => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const labelFor = (locale: string): string => (locale.startsWith('it') ? t('localeIt') : t('localeEn'));
   const [busy, setBusy] = useState(false);
 
   const switchTo = (locale: string): void => {
@@ -39,7 +40,7 @@ export const LocaleSwitcher = ({ locales }: { locales: string[] }): React.ReactN
             i18n.language === locale ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300'
           }`}
         >
-          {locale}
+          {labelFor(locale)}
         </button>
       ))}
       <button
