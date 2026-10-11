@@ -20,8 +20,8 @@ const ExchangeRow = ({ exchange }: { exchange: DeliveryExchange }): React.ReactN
           className="w-24 shrink-0"
           title={
             exchange.source === 'likely-cache'
-              ? 'Inferred from latency. Resource Timing is unavailable cross-origin without Timing-Allow-Origin, which the backend does not send.'
-              : undefined
+              ? 'Inferred from latency: Resource Timing had no entry for this request yet.'
+              : 'Measured from Resource Timing transferSize (delivery sends Timing-Allow-Origin: *): 0 bytes is a browser-cache hit.'
           }
         >
           {exchange.source}
@@ -30,6 +30,7 @@ const ExchangeRow = ({ exchange }: { exchange: DeliveryExchange }): React.ReactN
       </button>
       {open && (
         <pre className="mt-1 overflow-x-auto rounded bg-neutral-100 p-2">
+          {exchange.etag === undefined ? '' : `ETag: ${exchange.etag}\n`}
           {exchange.outcome.kind === 'network'
             ? `network or CORS failure — indistinguishable from JavaScript: ${exchange.outcome.message}`
             : JSON.stringify(exchange.outcome.body, null, 2)}
@@ -124,10 +125,10 @@ export const DiagnosticsDrawer = ({ config }: { config: TranslifyConfig }): Reac
               </ul>
             )}
             <p className="mt-2 text-xs text-neutral-600">
-              The response ETag cannot be read here: the backend calls{' '}
-              <code>enableCors()</code> with no <code>exposedHeaders</code>, and <code>ETag</code> is
-              not CORS-safelisted. Conditional requests and 304s are therefore not observable from a
-              browser client.
+              Delivery exposes <code>ETag</code> over CORS, so every exchange below shows the
+              validator it received. An ordinary read leaves revalidation to the browser cache;
+              &ldquo;Force revalidate&rdquo; sends <code>If-None-Match</code> itself and logs the
+              server&rsquo;s <code>304</code>.
             </p>
           </div>
 

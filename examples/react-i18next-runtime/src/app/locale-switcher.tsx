@@ -21,8 +21,10 @@ export const LocaleSwitcher = ({
 
   /**
    * `Cache-Control: public, max-age=30` means a repeat request inside 30 s is
-   * served from the browser's HTTP cache with no network row in the log. This
-   * forces a real round trip so the cache is observable rather than invisible.
+   * served from the browser's HTTP cache, and after that the browser revalidates
+   * on its own and still hands the page a 200. This forces a real round trip with
+   * `If-None-Match`, so the server's 304 shows up in the log instead of staying
+   * invisible.
    */
   const revalidate = (): void => {
     setBusy(true);

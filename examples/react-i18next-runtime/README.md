@@ -31,7 +31,7 @@ A **delivery key** is not a secret key: it only reads published bundles of one p
 
 ## The integration (all of it)
 
-`src/translify/backend.ts` is an i18next backend module. One delivery request per (language, namespace); this is the whole of it, minus the cache-busting toggle the drawer uses:
+`src/translify/backend.ts` is an i18next backend module. One delivery request per (language, namespace); this is the whole of it, minus the "Force revalidate" path the drawer uses (the module keeps each bundle with its `ETag` and revalidates with `If-None-Match`, see below):
 
 ```ts
 import type { BackendModule, ReadCallback } from 'i18next';
@@ -84,8 +84,9 @@ export const createBackend = (config: TranslifyConfig): BackendModule => ({
 
 ## What delivery guarantees
 
-- `Cache-Control: public, max-age=30, s-maxage=30` and an edge cache in front: repeat loads inside 30 s come from cache, and the origin keeps a bundle for 5 minutes. The "Force revalidate" button (diagnostics mode) bypasses the browser cache.
-- An `ETag` is sent, but a browser cannot read it cross-origin yet (it is not in `Access-Control-Expose-Headers`), so conditional requests are not possible from page JavaScript. Tracked as TRLIFY-97.
+- `Cache-Control: public, max-age=30, s-maxage=30` and an edge cache in front: repeat loads inside 30 s come from cache, and the origin keeps a bundle for 5 minutes. After 30 s the browser revalidates on its own and still hands the page a 200.
+- `ETag` is exposed over CORS (`Access-Control-Expose-Headers`), so page JavaScript can keep a bundle with its validator and revalidate it with `If-None-Match`; the answer is a `304` with no body. That header is not CORS-safelisted, so the browser preflights such a request; delivery lets it cache the preflight for a day (`Access-Control-Max-Age: 86400`). The "Force revalidate" button (diagnostics mode) does exactly this: the backend module (`src/translify/backend.ts`) holds every bundle it received and, on a forced read, sends its `ETag` and keeps the bundle on `304`.
+- `Timing-Allow-Origin: *` is sent, so cross-origin Resource Timing reports `transferSize`: the drawer's `source` column reads `cache` (0 bytes, a browser-cache hit) or `network` from it, and falls back to latency (`likely-cache`) only when no timing entry was found.
 - Wrong project, environment or locale: `404` with no detail. Missing or revoked key: `401`. Unknown namespace: `200 {}`.
 - Rate limits on delivery: 300 requests / 60 s per IP and 6000 / 60 s per key, answered with `429`. Ordinary traffic never meets them; the diagnostics burst of 40 proves it.
 
