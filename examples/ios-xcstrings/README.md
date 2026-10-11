@@ -49,6 +49,6 @@ The weekly `drift` job runs `translify status` on this folder like on the others
 
 ## Adding a key
 
-1. Add the entry to the String Catalog in Xcode (or push it from any other example's catalog: the namespace `ios` is its own).
-2. `xcodebuild -exportLocalizations -localizationPath out -exportLanguage en`, copy `out/en.xcloc/Localized Contents/en.xliff` to `Localization/en.xliff`, `npx translify push` — the server reads Xcode's export, stores the printf types for the next pull, and names arguments after the key's existing ones.
-3. Translate in Translify, `npx translify pull`, import.
+1. Add it to `catalog/locales/*/ios.json` first and `translify push` from `catalog/`: the catalog is the source of truth and gives the argument its ICU name (`{name}`). A key created from an Xcode export instead gets positional names (`{arg1}`), which the other platforms would then have to use too.
+2. Add the entry to the String Catalog in Xcode with the same key; `npx translify pull` writes the units.
+3. To push translator edits made in Xcode back: `xcodebuild -exportLocalizations -localizationPath out -exportLanguage it`, copy the `.xliff` to `Localization/it.xliff`, `npx translify push` — the server maps Xcode's positional placeholders onto the key's existing argument names and keeps the printf types for the next pull.
