@@ -1,5 +1,5 @@
 {
   "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
   "apiUrl": "https://translify.tommasofeltrin.work/api",
-  "files": [{ "pattern": "src/locale/messages.{locale}.xlf", "format": "xliff", "namespace": "cart" }]
+  "files": [{ "pattern": "src/locale/messages.{locale}.xlf", "format": "xliff", "namespace": "cart", "xliffDialect": "angular" }]
 }
