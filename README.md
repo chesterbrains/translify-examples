@@ -30,7 +30,7 @@ Both start from the same catalog.
 
 4. Pick an example from the table. Each folder is self-contained, with its own README.
 
-`catalog/` is the source of truth: one namespace `cart`, nine keys, in flat JSON. Keys are camelCase identifiers so the same catalog pulls as JSON, ARB and XLIFF unchanged (Flutter's `gen-l10n` needs Dart identifiers).
+`catalog/` is the source of truth: namespace `cart` (nine keys, shared by the three cart examples) plus namespace `ios` (five keys for the iOS example's String Catalog), in flat JSON. Keys are camelCase identifiers so the same catalog pulls as JSON, ARB and XLIFF unchanged (Flutter's `gen-l10n` needs Dart identifiers).
 
 ## Reference
 

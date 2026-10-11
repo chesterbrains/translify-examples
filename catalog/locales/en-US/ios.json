@@ -1,0 +1,7 @@
+{
+  "cartSummary": "You have {count, plural, one {# item} other {# items}} in your cart",
+  "greeting": "Hello, {name}",
+  "itemCount": "{count, plural, one {# item} other {# items}}",
+  "plain": "Your cart",
+  "positional": "{name} bought {count, number} items"
+}

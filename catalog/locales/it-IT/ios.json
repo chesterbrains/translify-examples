@@ -1,0 +1,7 @@
+{
+  "cartSummary": "Hai {count, plural, one {# articolo} other {# articoli}} nel carrello",
+  "greeting": "Ciao, {name}",
+  "itemCount": "{count, plural, one {# articolo} other {# articoli}}",
+  "plain": "Il tuo carrello",
+  "positional": "{name} ha comprato {count, number} articoli"
+}
