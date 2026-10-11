@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
+  "apiUrl": "https://translify.tommasofeltrin.work/api",
+  "files": [
+    {
+      "pattern": "Localization/{locale}.xliff",
+      "format": "xliff",
+      "namespace": "ios",
+      "xliffDialect": "xcode",
+      "xliffOriginal": "Sources/App/Localizable.xcstrings"
+    }
+  ]
+}

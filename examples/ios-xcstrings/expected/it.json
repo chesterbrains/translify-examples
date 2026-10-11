@@ -1,0 +1,66 @@
+{
+  "cartSummary": {
+    "stringUnit": {
+      "state": "translated",
+      "value": "Hai %#@count@ nel carrello"
+    },
+    "substitutions": {
+      "count": {
+        "argNum": 1,
+        "formatSpecifier": "lld",
+        "variations": {
+          "plural": {
+            "one": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%arg articolo"
+              }
+            },
+            "other": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%arg articoli"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "greeting": {
+    "stringUnit": {
+      "state": "translated",
+      "value": "Ciao, %1$@"
+    }
+  },
+  "itemCount": {
+    "variations": {
+      "plural": {
+        "one": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld articolo"
+          }
+        },
+        "other": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld articoli"
+          }
+        }
+      }
+    }
+  },
+  "plain": {
+    "stringUnit": {
+      "state": "translated",
+      "value": "Il tuo carrello"
+    }
+  },
+  "positional": {
+    "stringUnit": {
+      "state": "translated",
+      "value": "%1$@ ha comprato %2$lld articoli"
+    }
+  }
+}
