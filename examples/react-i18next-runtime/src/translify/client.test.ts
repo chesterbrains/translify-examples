@@ -55,9 +55,24 @@ describe('toExchange', () => {
     expect(exchange.outcome).toEqual({ kind: 'network', message: 'Failed to fetch' });
   });
 
-  it('labels a very fast response as likely cache', () => {
+  it('falls back to latency when Resource Timing has no entry for the request', () => {
     const exchange = toExchange({ ...base, ms: 1, status: 200, body: {} });
     expect(exchange.source).toBe('likely-cache');
+  });
+
+  it('reads a cache hit from a measured transfer size of zero', () => {
+    const exchange = toExchange({ ...base, ms: 40, status: 200, body: {}, transferSize: 0 });
+    expect(exchange.source).toBe('cache');
+  });
+
+  it('reads a network round trip from a measured non-zero transfer size, however fast', () => {
+    const exchange = toExchange({ ...base, ms: 1, status: 304, body: null, transferSize: 300 });
+    expect(exchange.source).toBe('network');
+  });
+
+  it('keeps the ETag when the response carried one', () => {
+    const exchange = toExchange({ ...base, ms: 40, status: 200, body: {}, etag: '"abc"' });
+    expect(exchange.etag).toBe('"abc"');
   });
 });
 
@@ -126,5 +141,43 @@ describe('fetchBundle', () => {
 
     expect(exchange.path).toBe(`/delivery/acme-ecom/production/it-IT?key=${maskKey(config.apiKey)}`);
     expect(exchange.path).not.toContain(config.apiKey);
+  });
+
+  it('sends no conditional header unless asked, so the request needs no preflight', async () => {
+    const fetchMock = stubFetch();
+
+    await fetchBundle(config, { locale: 'it-IT', label: 'app' });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).has('If-None-Match')).toBe(false);
+  });
+
+  it('sends If-None-Match when given a validator', async () => {
+    const fetchMock = stubFetch();
+
+    await fetchBundle(config, { locale: 'it-IT', label: 'app', ifNoneMatch: '"abc"' });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).get('If-None-Match')).toBe('"abc"');
+  });
+
+  it('records the ETag the response exposed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('{}', { status: 200, headers: { ETag: '"abc"' } })),
+    );
+
+    const exchange = await fetchBundle(config, { locale: 'it-IT', label: 'app' });
+
+    expect(exchange.etag).toBe('"abc"');
+  });
+
+  it('records a 304 as an http outcome with an empty body', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 304, headers: { ETag: '"abc"' } })));
+
+    const exchange = await fetchBundle(config, { locale: 'it-IT', label: 'app', ifNoneMatch: '"abc"' });
+
+    expect(exchange.outcome).toEqual({ kind: 'http', status: 304, body: null });
+    expect(exchange.etag).toBe('"abc"');
   });
 });

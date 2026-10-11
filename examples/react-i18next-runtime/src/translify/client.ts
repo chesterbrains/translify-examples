@@ -13,6 +13,13 @@ export interface FetchParams {
   apiKey?: string | null;
   extraQuery?: Record<string, string>;
   cache?: RequestCache;
+  /**
+   * Sent as `If-None-Match`. The header is not CORS-safelisted, so the browser
+   * preflights the request (delivery lets it cache that preflight for a day), and
+   * the fetch spec turns a request with a conditional header into `no-store`: the
+   * server, not the browser cache, answers, with a 304 when the validator matches.
+   */
+  ifNoneMatch?: string;
 }
 
 /** `key`, when given, is appended as `key=` — the delivery contract since edge caching. */
@@ -39,11 +46,23 @@ export const withKey = (path: string, maskedKey: string): string =>
   `${path}${path.includes('?') ? '&' : '?'}key=${maskedKey}`;
 
 /**
- * Below this, a response almost certainly came from the browser's HTTP cache.
- * A heuristic, not a measurement: Resource Timing is unavailable cross-origin
- * without `Timing-Allow-Origin`, which the backend does not send.
+ * Latency fallback, used only when Resource Timing has no entry for the request:
+ * below this, a response almost certainly came from the browser's HTTP cache.
  */
 export const CACHE_MS_THRESHOLD = 5;
+
+/**
+ * `transferSize` of the request's Resource Timing entry, when the browser recorded one.
+ * It is only non-zero cross-origin because delivery sends `Timing-Allow-Origin: *`; a
+ * cache hit reports 0. The entry is queued when the fetch completes, so it may not be
+ * there yet right after the body is read — hence the fallback.
+ */
+export const measuredTransferSize = (url: string): number | undefined => {
+  if (typeof performance === 'undefined' || typeof performance.getEntriesByName !== 'function') return undefined;
+  const entry = performance.getEntriesByName(url, 'resource').at(-1);
+
+  return entry !== undefined && 'transferSize' in entry ? (entry as PerformanceResourceTiming).transferSize : undefined;
+};
 
 export interface ExchangeInput {
   label: string;
@@ -52,7 +71,15 @@ export interface ExchangeInput {
   status?: number;
   body?: unknown;
   error?: unknown;
+  etag?: string;
+  transferSize?: number;
 }
+
+const sourceOf = (input: ExchangeInput): DeliveryExchange['source'] => {
+  if (input.transferSize !== undefined) return input.transferSize === 0 ? 'cache' : 'network';
+
+  return input.ms < CACHE_MS_THRESHOLD ? 'likely-cache' : 'network';
+};
 
 export const toExchange = (input: ExchangeInput): DeliveryExchange => ({
   id: crypto.randomUUID(),
@@ -60,7 +87,8 @@ export const toExchange = (input: ExchangeInput): DeliveryExchange => ({
   label: input.label,
   path: input.path,
   ms: input.ms,
-  source: input.ms < CACHE_MS_THRESHOLD ? 'likely-cache' : 'network',
+  source: sourceOf(input),
+  ...(input.etag === undefined ? {} : { etag: input.etag }),
   outcome:
     input.status === undefined
       ? { kind: 'network', message: input.error instanceof Error ? input.error.message : String(input.error) }
@@ -87,8 +115,10 @@ export const fetchBundle = async (
   let exchange: DeliveryExchange;
 
   try {
-    const response = await fetch(`${config.baseUrl}${requestPath}`, {
+    const url = `${config.baseUrl}${requestPath}`;
+    const response = await fetch(url, {
       cache: params.cache ?? 'default',
+      headers: params.ifNoneMatch === undefined ? {} : { 'If-None-Match': params.ifNoneMatch },
     });
     const text = await response.text();
     let body: unknown = text;
@@ -103,6 +133,8 @@ export const fetchBundle = async (
       ms: performance.now() - started,
       status: response.status,
       body,
+      etag: response.headers.get('etag') ?? undefined,
+      transferSize: measuredTransferSize(url),
     });
   } catch (error) {
     // A CORS rejection and a dead server are indistinguishable here: both are a

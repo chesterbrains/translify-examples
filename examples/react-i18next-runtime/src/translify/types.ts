@@ -26,10 +26,13 @@ export interface DeliveryExchange {
   path: string;
   ms: number;
   /**
-   * Heuristic. Cross-origin Resource Timing is unavailable without a
-   * `Timing-Allow-Origin` header, which the backend does not send, so cache
-   * attribution is inferred from latency alone.
+   * Where the bytes came from. `cache` and `network` are measured: delivery sends
+   * `Timing-Allow-Origin: *`, so cross-origin Resource Timing reports `transferSize`
+   * (0 for a browser-cache hit, header-sized for a 304). `likely-cache` is the
+   * latency fallback for when no timing entry was found.
    */
-  source: 'network' | 'likely-cache';
+  source: 'network' | 'cache' | 'likely-cache';
+  /** The response's validator. Readable because delivery exposes `ETag` over CORS. */
+  etag?: string;
   outcome: ExchangeOutcome;
 }

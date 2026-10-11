@@ -50,8 +50,13 @@ Recorded, not fixed. Each is a decision for `translify-be`.
    with no `exposedHeaders`, and `ETag` is not CORS-safelisted, so a browser SDK
    cannot do conditional requests or observe the 304 path the endpoint
    implements. One line fixes it: `exposedHeaders: ['ETag']`.
+   _Fixed in translify-be v0.15.1 (2026-10-11, TRLIFY-97): `ETag` is exposed and
+   the preflight a manual `If-None-Match` triggers is cacheable for a day. The
+   "Force revalidate" button now shows the 304._
 2. **No `Timing-Allow-Origin`.** Cross-origin Resource Timing is suppressed, so
    a client cannot tell a cache hit from a network round trip except by latency.
+   _Fixed in the same release: delivery 200 and 304 carry `Timing-Allow-Origin: *`;
+   the drawer's `source` column is measured from `transferSize`._
 3. **An unknown namespace returns an empty 200, not a 404.** `DeliveryService`
    filters publication rows and never asserts the namespace exists. For an SDK
    this is the difference between a silent empty bundle and a loud error.
