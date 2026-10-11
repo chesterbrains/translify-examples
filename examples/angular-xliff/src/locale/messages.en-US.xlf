@@ -27,14 +27,14 @@
     </unit>
     <unit id="greeting" name="greeting">
       <segment>
-        <source>Hello, {name}</source>
-        <target>Hello, {name}</target>
+        <source>Hello, <ph id="0" equiv="INTERPOLATION" disp="{{ name }}"/></source>
+        <target>Hello, <ph id="0" equiv="INTERPOLATION" disp="{{ name }}"/></target>
       </segment>
     </unit>
     <unit id="itemCount" name="itemCount">
       <segment>
-        <source>{count, plural, one {{count} item} other {{count} items}}</source>
-        <target>{count, plural, one {{count} item} other {{count} items}}</target>
+        <source>{VAR_PLURAL, plural, one {<ph id="0" equiv="INTERPOLATION" disp="{{ count }}"/> item} other {<ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/> items}}</source>
+        <target>{VAR_PLURAL, plural, one {<ph id="0" equiv="INTERPOLATION" disp="{{ count }}"/> item} other {<ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/> items}}</target>
       </segment>
     </unit>
     <unit id="localeEn" name="localeEn">

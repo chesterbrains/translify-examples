@@ -66,14 +66,14 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - name: catalog
-        run: npx -y @chesterbrains/translify-cli@0.4.1 status
+        run: npx -y @chesterbrains/translify-cli@0.5.0 status
         working-directory: catalog
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: flutter-arb
-        run: npx -y @chesterbrains/translify-cli@0.4.1 status
+        run: npx -y @chesterbrains/translify-cli@0.5.0 status
         working-directory: examples/flutter-arb
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: angular-xliff
-        run: npx -y @chesterbrains/translify-cli@0.4.1 status
+        run: npx -y @chesterbrains/translify-cli@0.5.0 status
         working-directory: examples/angular-xliff
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }

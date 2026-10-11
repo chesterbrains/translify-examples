@@ -33,14 +33,21 @@ Angular's XLIFF unit ids are therefore the catalog's keys, and the file `transli
 `translify.json`:
 
 ```json
-{ "files": [{ "pattern": "src/locale/messages.{locale}.xlf", "format": "xliff", "namespace": "cart" }] }
+{ "files": [{ "pattern": "src/locale/messages.{locale}.xlf", "format": "xliff", "namespace": "cart", "xliffDialect": "angular" }] }
 ```
 
 `angular.json` declares `i18n.sourceLocale: "en-US"` and `i18n.locales["it-IT"].translation`, `localize: true` on the build, and an `it` configuration for `ng serve`. The build warns *"Locale data for 'it-IT' cannot be found. Using locale data for 'it'"*: Angular ships CLDR data per language, and `it` is the right fallback.
 
-## Placeholders — current limitation
+## Placeholders and plurals
 
-Angular writes `{{ }}` interpolations as `<ph>` units and template ICU as `{VAR_PLURAL, …}`; Translify stores plain ICU text (`Hello, {name}`). They do not match yet, so this example uses only the catalog's plain keys; `itemCount` and `greeting` are shown in the React and Flutter examples. Tracked as TRLIFY-98.
+Angular writes a `{{ }}` interpolation as an inline `<ph>` unit and a template ICU as `{VAR_PLURAL, …}`, and matches a translation's placeholders by their `equiv` name; Translify stores plain ICU text (`Hello, {name}`). The rule's `"xliffDialect": "angular"` makes the server convert on the way out and back:
+
+| Translify (`catalog/`) | What `pull` writes | Template |
+|---|---|---|
+| `Hello, {name}` | `Hello, <ph id="0" equiv="INTERPOLATION" disp="{{ name }}"/>` | `<p i18n="@@greeting">Hello, {{ name }}</p>` |
+| `{count, plural, one {{count} item} other {{count} items}}` | `{VAR_PLURAL, plural, one {<ph id="0" equiv="INTERPOLATION" disp="{{ count }}"/> item} other {<ph id="1" equiv="INTERPOLATION" disp="{{ count }}"/> items}}` | `<p i18n="@@itemCount">{count(), plural, one {{{ count() }} item} other {{{ count() }} items}}</p>` |
+
+The ICU must be the whole message of its element (text beside a plural, nested plurals, `selectordinal`, number/date formats and HTML inside a message are refused by `pull` with `XLIFF_DIALECT_UNSUPPORTED`). `push` from `ng extract-i18n` output reads the same shapes back, naming arguments from `disp` (`{{ count() }}` → `{count}`). Full rules: the [CLI README](https://github.com/chesterbrains/translify-cli#angular-xliff).
 
 ## Adding a key
 

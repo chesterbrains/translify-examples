@@ -1,5 +1,7 @@
 <main class="cart">
   <h1 i18n="@@cartTitle">Your cart</h1>
+  <p class="greeting" i18n="@@greeting">Hello, {{ name }}</p>
+  <p class="count" i18n="@@itemCount">{count(), plural, one {{{ count() }} item} other {{{ count() }} items}}</p>
 
   <div class="stepper">
     <button type="button" (click)="fewer()" aria-label="fewer">−</button>
