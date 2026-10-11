@@ -9,5 +9,9 @@
       "xliffDialect": "xcode",
       "xliffOriginal": "Sources/App/Localizable.xcstrings"
     }
-  ]
+  ],
+  "locales": {
+    "en": "en-US",
+    "it": "it-IT"
+  }
 }

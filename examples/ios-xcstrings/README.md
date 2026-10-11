@@ -10,10 +10,11 @@ Translify (ICU) ──translify pull──▶ Localization/it.xliff ──xcodeb
 
 ```json
 { "files": [{ "pattern": "Localization/{locale}.xliff", "format": "xliff", "namespace": "ios",
-              "xliffDialect": "xcode", "xliffOriginal": "Sources/App/Localizable.xcstrings" }] }
+              "xliffDialect": "xcode", "xliffOriginal": "Sources/App/Localizable.xcstrings" }],
+  "locales": { "en": "en-US", "it": "it-IT" } }
 ```
 
-`xliffOriginal` is the catalog path Xcode knows: it goes into `<file original>`, and Xcode imports nothing when it does not match the project.
+`xliffOriginal` is the catalog path Xcode knows: it goes into `<file original>`, and Xcode imports nothing when it does not match the project. The demo project's locales are `en-US` and `it-IT`; the `locales` map keeps the file names short, and the XLIFF carries `target-language="it-IT"`, which Xcode imports as a regional `it-IT` localization in the catalog.
 
 ## What the dialect does
 
@@ -36,11 +37,11 @@ xcodebuild -importLocalizations -localizationPath Localization/it.xliff
 swift build
 ```
 
-`./verify.sh` does the import on a copy, compares the catalog's `it` strings with `expected/it.json`, builds, and restores the catalog. It needs Xcode, so it runs by hand on a Mac (no macOS job in CI: those minutes cost 10× Linux on a shared pool). Verified on 2026-10-11 with Xcode 27.0:
+`./verify.sh` does the import on a copy, compares the catalog's `it-IT` strings with `expected/it.json`, builds, and restores the catalog. It needs Xcode, so it runs by hand on a Mac (no macOS job in CI: those minutes cost 10× Linux on a shared pool). Verified on 2026-10-11 with Xcode 27.0:
 
 ```
 Localization Import started for ios-xcstrings
-ok: it localizations match expected/it.json
+ok: it-IT localizations match expected/it.json
 Build complete!
 ```
 
