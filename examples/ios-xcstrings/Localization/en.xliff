@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="Sources/App/Localizable.xcstrings" source-language="en-US" target-language="en-US" datatype="plaintext">
+    <body>
+      <trans-unit id="cartSummary" xml:space="preserve">
+        <source>You have %1$#@count@ in your cart</source>
+        <target state="translated">You have %1$#@count@ in your cart</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="cartSummary|==|substitutions.count.plural.one" xml:space="preserve">
+        <source>%1$lld item</source>
+        <target state="translated">%1$lld item</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="cartSummary|==|substitutions.count.plural.other" xml:space="preserve">
+        <source>%1$lld items</source>
+        <target state="translated">%1$lld items</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="greeting" xml:space="preserve">
+        <source>Hello, %1$@</source>
+        <target state="translated">Hello, %1$@</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="itemCount|==|plural.one" xml:space="preserve">
+        <source>%1$lld item</source>
+        <target state="translated">%1$lld item</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="itemCount|==|plural.other" xml:space="preserve">
+        <source>%1$lld items</source>
+        <target state="translated">%1$lld items</target>
+        <note/>
+      </trans-unit>
+      <trans-unit id="plain" xml:space="preserve">
+        <source>Your cart</source>
+        <target state="translated">Your cart</target>
+        <note>Screen title</note>
+      </trans-unit>
+      <trans-unit id="positional" xml:space="preserve">
+        <source>%1$@ bought %2$lld items</source>
+        <target state="translated">%1$@ bought %2$lld items</target>
+        <note/>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
