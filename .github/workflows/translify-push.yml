@@ -11,7 +11,7 @@
 # - On main, the same files are pushed for real.
 #
 # Pull requests from forks have no access to secrets, so they are skipped.
-# Pin the CLI (`npx -y @chesterbrains/translify-cli@0.6`) if a breaking 0.x release must not turn
+# Pin the CLI (`npx -y @chesterbrains/translify-cli@0.7`) if a breaking 0.x release must not turn
 # this workflow red on its own.
 name: Translify push
 
@@ -45,7 +45,7 @@ jobs:
         # The output is kept for the comment; a failed dry run still gets commented, then fails the job below.
         continue-on-error: true
         shell: bash
-        run: npx -y @chesterbrains/translify-cli@0.6.1 push --dry-run 2>&1 | tee push.txt
+        run: npx -y @chesterbrains/translify-cli@0.7.0 push --dry-run 2>&1 | tee push.txt
         env:
           TRANSLIFY_SECRET_KEY: ${{ secrets.TRANSLIFY_SECRET_KEY }}
           NO_COLOR: 1 # the CLI colours its output on CI; the comment wants plain text
@@ -94,10 +94,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: npx -y @chesterbrains/translify-cli@0.6.1 push
+      - run: npx -y @chesterbrains/translify-cli@0.7.0 push
         env:
           TRANSLIFY_SECRET_KEY: ${{ secrets.TRANSLIFY_SECRET_KEY }}
       # Optional: publish right after the push. Needs the PUBLISH scope on the key.
-      # - run: npx -y @chesterbrains/translify-cli@0.6.1 publish production
+      # - run: npx -y @chesterbrains/translify-cli@0.7.0 publish production
       #   env:
       #     TRANSLIFY_SECRET_KEY: ${{ secrets.TRANSLIFY_SECRET_KEY }}
