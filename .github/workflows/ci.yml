@@ -6,6 +6,14 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * 1' # Monday 06:00 UTC: drift check only
+  # Called by translify-pull-on-publish.yml to build the pulled files on their branch before they are merged.
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build (the pull-on-publish branch); empty builds the event's ref
+        type: string
+        required: false
+        default: ''
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -19,6 +27,8 @@ jobs:
     defaults: { run: { working-directory: examples/react-i18next-runtime } }
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: pnpm/action-setup@v4
         with: { version: 11 }
       - uses: actions/setup-node@v4
@@ -34,6 +44,8 @@ jobs:
     defaults: { run: { working-directory: examples/flutter-arb } }
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: subosito/flutter-action@v2
         with: { channel: stable, cache: true }
       - run: flutter pub get
@@ -48,6 +60,8 @@ jobs:
     defaults: { run: { working-directory: examples/angular-xliff } }
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - uses: pnpm/action-setup@v4
         with: { version: 11 }
       - uses: actions/setup-node@v4
@@ -58,6 +72,8 @@ jobs:
 
   # Weekly, not per PR: Actions minutes are a shared pool across the Translify repos.
   # The CLI is pinned so a breaking 0.x release cannot turn this job red for reasons unrelated to drift.
+  # examples/* are pulled from the production environment by translify-pull-on-publish.yml, so their drift is
+  # measured against what is live (`--from env:production`); catalog/ is the working copy it pushes.
   drift:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -70,14 +86,14 @@ jobs:
         working-directory: catalog
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: flutter-arb
-        run: npx -y @chesterbrains/translify-cli@0.8.0 status
+        run: npx -y @chesterbrains/translify-cli@0.8.0 status --from env:production
         working-directory: examples/flutter-arb
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: angular-xliff
-        run: npx -y @chesterbrains/translify-cli@0.8.0 status
+        run: npx -y @chesterbrains/translify-cli@0.8.0 status --from env:production
         working-directory: examples/angular-xliff
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
       - name: ios-xcstrings
-        run: npx -y @chesterbrains/translify-cli@0.8.0 status
+        run: npx -y @chesterbrains/translify-cli@0.8.0 status --from env:production
         working-directory: examples/ios-xcstrings
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
