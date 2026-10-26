@@ -21,7 +21,9 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: translify-pull-on-publish
+  # Per environment: a pending run is replaced by a newer one in its group, so another environment's dispatch must
+  # never take the place of a pending publish of the one this repository follows.
+  group: translify-pull-on-publish-${{ github.event.client_payload.environment.slug }}
   # Publishes run one after the other, never cancelled: each one pulls what is live when it runs.
   cancel-in-progress: false
 
@@ -70,13 +72,17 @@ jobs:
       # One branch per batch, so a resent delivery rewrites the same branch instead of failing.
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
+        env:
+          BRANCH: ${{ steps.diff.outputs.branch }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -B "${{ steps.diff.outputs.branch }}"
+          git checkout -B "$BRANCH"
           git add -A
           git commit -m "chore(i18n): pull $SLUG after batch #$SEQ from Translify"
-          git push --force-with-lease origin HEAD
+          # --force, not --force-with-lease: checkout fetched only the default branch, so a lease has no remote
+          # ref to compare with and rejects every rewrite (a re-run after a failed step). The branch is the bot's.
+          git push --force origin HEAD
 
       - name: Open pull request
         if: steps.diff.outputs.changed == 'true'
