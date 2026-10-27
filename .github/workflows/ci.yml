@@ -16,7 +16,8 @@ on:
         default: ''
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # A build called by translify-pull-on-publish.yml for a pulled branch gets its own group, not main's.
+  group: ci-${{ inputs.ref || github.ref }}
   # Only PR runs are superseded by a newer push; a scheduled drift run must never be cancelled by a merge.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
