@@ -1,7 +1,7 @@
 {
   "@@locale": "it",
   "cartTitle": "Il tuo carrello",
-  "checkout": "Vai al pagamento (smoke)",
+  "checkout": "Vai al pagamento",
   "continueShopping": "Continua lo shopping",
   "emptyCta": "Inizia a fare acquisti",
   "greeting": "Ciao, {name}",
