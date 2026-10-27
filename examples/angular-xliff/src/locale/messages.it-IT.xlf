@@ -10,7 +10,7 @@
     <unit id="checkout" name="checkout">
       <segment>
         <source>Checkout</source>
-        <target>Vai al pagamento</target>
+        <target>Vai al pagamento (smoke 2)</target>
       </segment>
     </unit>
     <unit id="continueShopping" name="continueShopping">
