@@ -4,7 +4,7 @@
     <unit id="cartTitle" name="cartTitle">
       <segment>
         <source>Your cart</source>
-        <target>Il tuo carrello</target>
+        <target>Il tuo carrello (smoke)</target>
       </segment>
     </unit>
     <unit id="checkout" name="checkout">
