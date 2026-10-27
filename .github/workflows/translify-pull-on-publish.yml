@@ -34,10 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.diff.outputs.changed }}
-      branch: ${{ steps.diff.outputs.branch }}
+      branch: ${{ env.BRANCH }}
     env:
       SLUG: ${{ github.event.client_payload.environment.slug }}
       SEQ: ${{ github.event.client_payload.batch.seq }}
+      BRANCH: translify/publish-${{ github.event.client_payload.environment.slug }}-${{ github.event.client_payload.batch.seq }}
+      BASE: ${{ github.event.repository.default_branch }}
       # The whole payload, read with jq below; never interpolated into a script.
       PAYLOAD: ${{ toJSON(github.event.client_payload) }}
     steps:
@@ -51,7 +53,7 @@ jobs:
           set -euo pipefail
           for dir in examples/flutter-arb examples/angular-xliff examples/ios-xcstrings; do
             echo "::group::$dir"
-            (cd "$dir" && npx -y @chesterbrains/translify-cli@0.8.0 pull --from env:"$SLUG")
+            (cd "$dir" && npx -y @chesterbrains/translify-cli@0.8.0 pull --from env:"$SLUG") || { echo "::endgroup::"; exit 1; }
             echo "::endgroup::"
           done
         env:
@@ -61,7 +63,6 @@ jobs:
       - name: Detect changes
         id: diff
         run: |
-          echo "branch=translify/publish-$SLUG-$SEQ" >> "$GITHUB_OUTPUT"
           if [ -n "$(git status --porcelain)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
@@ -72,41 +73,43 @@ jobs:
       # One branch per batch, so a resent delivery rewrites the same branch instead of failing.
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
-        env:
-          BRANCH: ${{ steps.diff.outputs.branch }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git checkout -B "$BRANCH"
           git add -A
           git commit -m "chore(i18n): pull $SLUG after batch #$SEQ from Translify"
-          # --force, not --force-with-lease: checkout fetched only the default branch, so a lease has no remote
-          # ref to compare with and rejects every rewrite (a re-run after a failed step). The branch is the bot's.
+          # --force, not --force-with-lease: checkout fetched only main, so a lease has no remote ref to compare
+          # with and rejects every rewrite (a re-run after a failed step). The branch is the bot's.
           git push --force origin HEAD
 
       - name: Open pull request
         if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ steps.diff.outputs.branch }}
         run: |
           title="$(jq -r '"Translify: \(.environment.name) after batch #\(.batch.seq) (\(.batch.kind))"' <<<"$PAYLOAD")"
-          # Pipes would break the table; back-slash them in the free-text fields.
+          # Names are free text: back-slash the Markdown characters so they cannot break the table, format or @mention.
           jq -r '
-            def cell: tostring | gsub("\\|"; "\\|");
-            "Pulled **\(.environment.name | cell)** (`\(.environment.slug | cell)`) after batch **#\(.batch.seq)** (`\(.batch.kind)`) by \(.actor.name | cell) (\(.actor.type)).",
+            def cell: tostring | gsub("(?<c>[`*_\\[\\]<>@|\\\\])"; "\\\(.c)");
+            "Pulled **\(.environment.name | cell)** (`\(.environment.slug)`) after batch **#\(.batch.seq)** (`\(.batch.kind)`) by \(.actor.name | cell) (\(.actor.type)).",
             "The files are what was live when this run pulled, which may already include a later batch.",
             "",
             "| Published | Added | Changed | Removed | Withheld | Errors |",
             "|---|---|---|---|---|---|",
             "| \(.batch.publishedCount) | \(.batch.addedCount) | \(.batch.changedCount) | \(.batch.removedCount) | \(.batch.withheldCount) | \(.batch.errorCount) |",
             "",
-            "Delivery `\(.id)` · \(.createdAt) · project `\(.project.slug | cell)`"
+            "Delivery `\(.id)` · \(.createdAt) · project `\(.project.slug)`"
           ' <<<"$PAYLOAD" > body.md
-          if gh pr view "$BRANCH" --json number > /dev/null 2>&1; then
-            gh pr edit "$BRANCH" --title "$title" --body-file body.md
-          elif ! gh pr create --base main --head "$BRANCH" --title "$title" --body-file body.md; then
-            echo '::error::Could not open the pull request. Enable "Allow GitHub Actions to create and approve pull requests" in Settings → Actions → General.'
+          # Only an open pull request for this branch is reused; a merged one from an earlier run is not.
+          number="$(gh pr list --head "$BRANCH" --state open --json number -q '.[0].number')"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body-file body.md
+          elif ! gh pr create --base "$BASE" --head "$BRANCH" --title "$title" --body-file body.md 2> create.err; then
+            cat create.err
+            if grep -q "not permitted to create" create.err; then
+              echo '::error::Enable "Allow GitHub Actions to create and approve pull requests" in Settings → Actions → General.'
+            fi
             exit 1
           fi
 
@@ -114,6 +117,9 @@ jobs:
   build:
     needs: pull
     if: needs.pull.outputs.changed == 'true'
+    # The builds only read the checkout; they never need the write token this workflow holds.
+    permissions:
+      contents: read
     uses: ./.github/workflows/ci.yml
     with:
       ref: ${{ needs.pull.outputs.branch }}
