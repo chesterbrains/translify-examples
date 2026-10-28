@@ -1,0 +1,11 @@
+{
+  "app_name": "Esempio Translify",
+  "colors.0": "Rosso",
+  "colors.1": "Verde",
+  "colors.2": "Blu",
+  "discount": "Risparmia il {arg1}% oggi",
+  "greeting": "Ciao, {arg1}",
+  "item_count": "{count, plural, one {# articolo} other {# articoli}}",
+  "positional": "{arg1} ha comprato {arg2} articoli",
+  "welcome_markup": "Benvenuto in <b>Translify</b>, è tutto pronto"
+}

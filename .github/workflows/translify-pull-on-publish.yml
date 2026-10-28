@@ -51,7 +51,7 @@ jobs:
       - name: Pull
         run: |
           set -euo pipefail
-          for dir in examples/flutter-arb examples/angular-xliff examples/ios-xcstrings; do
+          for dir in examples/flutter-arb examples/angular-xliff examples/ios-xcstrings examples/android-xml; do
             echo "::group::$dir"
             (cd "$dir" && npx -y @chesterbrains/translify-cli@0.8.0 pull --from env:"$SLUG") || { echo "::endgroup::"; exit 1; }
             echo "::endgroup::"

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
+  "apiUrl": "https://translify.tommasofeltrin.work/api",
+  "files": [
+    {
+      "pattern": "app/src/main/res/values-{locale}/strings.xml",
+      "format": "android",
+      "namespace": "android"
+    }
+  ],
+  "locales": {
+    "en": "en-US",
+    "it": "it-IT"
+  }
+}
