@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Esempio Translify</string>
+    <string-array name="colors">
+        <item>Rosso</item>
+        <item>Verde</item>
+        <item>Blu</item>
+    </string-array>
+    <string name="discount">Risparmia il %1$d%% oggi</string>
+    <string name="greeting">Ciao, %1$s</string>
+    <plurals name="item_count">
+        <item quantity="one">%1$d articolo</item>
+        <item quantity="other">%1$d articoli</item>
+    </plurals>
+    <string name="positional">%1$s ha comprato %2$d articoli</string>
+    <string name="welcome_markup">Benvenuto in <b>Translify</b>, è tutto pronto</string>
+</resources>
