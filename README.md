@@ -7,6 +7,7 @@ Complete, copyable apps showing how to use [Translify](https://translify.tommaso
 | [`examples/react-i18next-runtime`](examples/react-i18next-runtime) | **runtime** | JSON (delivery endpoint) | Vite · React · i18next | custom i18next backend, `?namespace=`, ICU plural, caching, diagnostics drawer |
 | [`examples/flutter-arb`](examples/flutter-arb) | build-time | ARB | Flutter `gen-l10n` | `translify pull`, `locales` map, `@@locale`, ICU plural |
 | [`examples/ios-xcstrings`](examples/ios-xcstrings) | build-time | XLIFF 1.2 | Xcode String Catalog | `translify pull` with `xliffDialect: xcode` (ICU ↔ positional printf, `\|==\|` plural and substitution units), `xcodebuild -importLocalizations`, verified by hand on a Mac |
+| [`examples/android-xml`](examples/android-xml) | build-time | Android strings.xml | Android resources | `translify pull` with `format: android` (ICU ↔ positional printf, `<plurals>`, `<string-array>`), compiled and linked by `aapt2` in CI |
 | [`examples/angular-xliff`](examples/angular-xliff) | build-time | XLIFF 2.0 | `@angular/localize` | `translify pull` with `xliffDialect: angular` (ICU ↔ `<ph>` / `VAR_PLURAL`), `@@id` key contract, `ng build --localize`, push from `ng extract-i18n` |
 
 ## Which style?

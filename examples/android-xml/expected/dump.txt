@@ -1,0 +1,23 @@
+Package name=com.translify.example id=7f
+  type array id=01 entryCount=1
+    resource 0x7f010000 array/colors
+      () (array) size=3
+        ["Red", "Green", "Blue"]
+  type plurals id=02 entryCount=1
+    resource 0x7f020000 plurals/item_count
+      () (plurals) size=2
+        one="%1$d item"
+        other="%1$d items"
+  type string id=03 entryCount=6
+    resource 0x7f030000 string/api_version
+      () "v1"
+    resource 0x7f030001 string/app_name
+      () "Translify Example"
+    resource 0x7f030002 string/discount
+      () "Save 20%% today"
+    resource 0x7f030003 string/greeting
+      () "Hello, %1$s"
+    resource 0x7f030004 string/positional
+      () "%1$s bought %2$d items"
+    resource 0x7f030005 string/welcome_markup
+      () (styled string) "Welcome to Translify, it's ready" b:11,19

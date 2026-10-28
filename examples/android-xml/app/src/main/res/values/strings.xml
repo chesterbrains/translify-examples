@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shown on the home screen -->
+    <string name="app_name">Translify Example</string>
+    <string name="greeting">Hello, %1$s</string>
+    <string name="positional">%1$s bought %2$d items</string>
+    <string name="welcome_markup">Welcome to <b>Translify</b>, it\'s ready</string>
+    <string name="discount">Save 20%% today</string>
+    <plurals name="item_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
+    <string-array name="colors">
+        <item>Red</item>
+        <item>Green</item>
+        <item>Blue</item>
+    </string-array>
+</resources>

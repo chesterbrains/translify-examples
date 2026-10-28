@@ -71,6 +71,17 @@ jobs:
       - run: pnpm build
       - run: pnpm check
 
+  android-xml:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: examples/android-xml } }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      # The hosted image sets ANDROID_HOME with build-tools and platforms; verify.sh picks the highest of each.
+      - run: ./verify.sh
+
   # Weekly, not per PR: Actions minutes are a shared pool across the Translify repos.
   # The CLI is pinned so a breaking 0.x release cannot turn this job red for reasons unrelated to drift.
   # examples/* are pulled from the production environment by translify-pull-on-publish.yml, so their drift is
@@ -97,4 +108,8 @@ jobs:
       - name: ios-xcstrings
         run: npx -y @chesterbrains/translify-cli@0.8.0 status --from env:production
         working-directory: examples/ios-xcstrings
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
+      - name: android-xml
+        run: npx -y @chesterbrains/translify-cli@0.9.0 status --from env:production
+        working-directory: examples/android-xml
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
