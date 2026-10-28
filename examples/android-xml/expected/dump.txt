@@ -14,7 +14,7 @@ Package name=com.translify.example id=7f
     resource 0x7f030001 string/app_name
       () "Translify Example"
     resource 0x7f030002 string/discount
-      () "Save 20%% today"
+      () "Save %1$d%% today"
     resource 0x7f030003 string/greeting
       () "Hello, %1$s"
     resource 0x7f030004 string/positional
