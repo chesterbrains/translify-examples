@@ -113,3 +113,7 @@ jobs:
         run: npx -y @chesterbrains/translify-cli@0.9.0 status --from env:production
         working-directory: examples/android-xml
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
+      - name: ios-strings
+        run: npx -y @chesterbrains/translify-cli@0.10.1 status --from env:production
+        working-directory: examples/ios-strings
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }

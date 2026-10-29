@@ -1,0 +1,12 @@
+{
+  "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
+  "apiUrl": "https://translify.tommasofeltrin.work/api",
+  "files": [
+    { "pattern": "Sources/App/{locale}.lproj/Localizable.strings", "format": "strings", "namespace": "ios" },
+    { "pattern": "Sources/App/{locale}.lproj/Localizable.stringsdict", "format": "stringsdict", "namespace": "ios" }
+  ],
+  "locales": {
+    "en": "en-US",
+    "it": "it-IT"
+  }
+}
