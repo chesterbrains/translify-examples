@@ -1,0 +1,5 @@
+"greeting" = "Ciao, %1$@";
+
+"plain" = "Il tuo carrello";
+
+"positional" = "%1$@ ha comprato %2$lld articoli";

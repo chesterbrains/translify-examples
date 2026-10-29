@@ -1,0 +1,6 @@
+"greeting" = "Hello, %1$@";
+
+/* Screen title */
+"plain" = "Your cart";
+
+"positional" = "%1$@ bought %2$lld items";

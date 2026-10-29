@@ -2,6 +2,8 @@
 
 iOS strings are compiled in from a String Catalog (`Sources/App/Localizable.xcstrings`). `translify pull` writes the XLIFF 1.2 Xcode imports; `xcodebuild -importLocalizations` puts the translations into the catalog.
 
+A project that still uses `Localizable.strings` / `.stringsdict` instead of a String Catalog can pull those tables directly: see [`ios-strings`](../ios-strings).
+
 ```
 Translify (ICU) ──translify pull──▶ Localization/it.xliff ──xcodebuild -importLocalizations──▶ Localizable.xcstrings
 ```
