@@ -34,7 +34,7 @@ Translify stores ICU; the `rails` dialect renders Rails interpolation on the way
 | `<b>Welcome</b> back` | kept verbatim, written quoted because it starts with `<` |
 | `3`, `false` | YAML scalars (`precision: 3`, `strip_insignificant_zeros: false`) |
 
-The files here are in the layout `i18n-tasks normalize` writes: keys sorted at every level (so plural categories come out `one`, `other`, `zero`), a sequence not indented under its key, nothing wrapped. Comments do not survive that layout, so none are written.
+The files here are in the layout `i18n-tasks normalize` writes: keys sorted at every level (so plural categories come out `one`, `other`, `zero`), a sequence not indented under its key, nothing wrapped. One deliberate difference from `normalize`: Translify writes a key's description as `#` comment lines directly above the key in the default-locale file (and reads them back on push), while `i18n-tasks normalize` drops comments. This example sets no descriptions on purpose, so the normalize guard stays byte-exact; a key with a description would make `verify.sh` fail.
 
 ## The `line_width: -1` note
 
@@ -52,9 +52,9 @@ bundle install
 ./verify.sh               # renders every key for it, then runs i18n-tasks normalize
 ```
 
-`verify.sh` runs `app.rb it` (which loads the pulled files with `I18n`) and compares its output with `expected/it.json`: the link resolves, `abbr_month_names` starts with `null`, `order` keeps its symbols, count 0 picks `zero`, dates and numbers follow the Italian formats. It then runs `i18n-tasks normalize` and fails on any change to `config/locales` through `git diff`, so the folder must be a git checkout with the files staged or committed. If any pulled file is not already canonical, the script fails; otherwise it prints `ok`. Needs Ruby 3.3 and Bundler (`i18n` and `i18n-tasks 1.0.14` are pinned in the `Gemfile`).
+`verify.sh` runs `app.rb it` (which loads the pulled files with `I18n`) and compares its output with `expected/it.json`: the link resolves, `abbr_month_names` starts with `null`, `order` keeps its symbols, count 0 picks `zero`, dates and numbers follow the Italian formats. It then runs `i18n-tasks normalize` and fails on any change it makes to `config/locales` (compared with a snapshot, no git needed). If any pulled file is not already canonical, the script fails; otherwise it prints `ok`. Needs Ruby 3.3 and Bundler (`i18n` and `i18n-tasks 1.0.14` are pinned in the `Gemfile`).
 
-The weekly `drift` job runs `translify status` on this folder like on the others, so the committed files are proven identical to a fresh pull.
+CI runs `translify status` on this folder like on the others, so the committed files are proven identical to a fresh pull.
 
 ## Adding a key
 
