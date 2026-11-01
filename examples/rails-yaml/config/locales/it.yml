@@ -1,0 +1,48 @@
+---
+it:
+  app:
+    cart:
+      heading: :app.cart.title
+      title: Il tuo carrello
+    greeting: Ciao %{name}
+    items:
+      one: "%{count} articolo"
+      other: "%{count} articoli"
+      zero: Nessun articolo
+    welcome_html: "<b>Bentornato</b>"
+  date:
+    abbr_month_names:
+    -
+    - gen
+    - feb
+    - mar
+    - apr
+    - mag
+    - giu
+    - lug
+    - ago
+    - set
+    - ott
+    - nov
+    - dic
+    day_names:
+    - domenica
+    - lunedì
+    - martedì
+    - mercoledì
+    - giovedì
+    - venerdì
+    - sabato
+    formats:
+      default: "%d/%m/%Y"
+      short: "%d %b"
+    order:
+    - :day
+    - :month
+    - :year
+  number:
+    format:
+      delimiter: "."
+      precision: 3
+      separator: ","
+      strip_insignificant_zeros: false

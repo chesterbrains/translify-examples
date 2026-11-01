@@ -1,0 +1,44 @@
+{
+  "abbr_month_names": [
+    null,
+    "gen",
+    "feb",
+    "mar",
+    "apr",
+    "mag",
+    "giu",
+    "lug",
+    "ago",
+    "set",
+    "ott",
+    "nov",
+    "dic"
+  ],
+  "date_default": "31/10/2026",
+  "date_short": "31 ott",
+  "day_names": [
+    "domenica",
+    "lunedì",
+    "martedì",
+    "mercoledì",
+    "giovedì",
+    "venerdì",
+    "sabato"
+  ],
+  "delimiter": ".",
+  "greeting": "Ciao Ada",
+  "heading": "Il tuo carrello",
+  "html": "<b>Bentornato</b>",
+  "items_0": "Nessun articolo",
+  "items_1": "1 articolo",
+  "items_5": "5 articoli",
+  "order": [
+    ":day",
+    ":month",
+    ":year"
+  ],
+  "precision": 3,
+  "separator": ",",
+  "strip_insignificant_zeros": false,
+  "title": "Il tuo carrello"
+}
