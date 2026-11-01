@@ -94,7 +94,8 @@ jobs:
         with: { ruby-version: '3.3', bundler-cache: true, working-directory: examples/rails-yaml }
       - run: ./verify.sh
 
-  # Weekly, not per PR: Actions minutes are a shared pool across the Translify repos.
+  # Weekly, not per PR: production only changes on a publish, and translify-pull-on-publish.yml already syncs each one;
+  # this catches anything that slipped past it (a failed pull, a hand edit).
   # The CLI is pinned so a breaking 0.x release cannot turn this job red for reasons unrelated to drift.
   # examples/* are pulled from the production environment by translify-pull-on-publish.yml, so their drift is
   # measured against what is live (`--from env:production`); catalog/ is the working copy it pushes.
