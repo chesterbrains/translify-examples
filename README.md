@@ -10,6 +10,7 @@ Complete, copyable apps showing how to use [Translify](https://translify.tommaso
 | [`examples/ios-strings`](examples/ios-strings) | build-time | `.strings` + `.stringsdict` | Foundation `.lproj` tables | `translify pull` with `format: strings` and `format: stringsdict` sharing one namespace (ICU ↔ positional printf, plurals as `NSStringPluralRuleType`), for projects without a String Catalog, verified by hand on a Mac |
 | [`examples/android-xml`](examples/android-xml) | build-time | Android strings.xml | Android resources | `translify pull` with `format: android` (ICU ↔ positional printf, `<plurals>`, `<string-array>`), compiled and linked by `aapt2` in CI |
 | [`examples/angular-xliff`](examples/angular-xliff) | build-time | XLIFF 2.0 | `@angular/localize` | `translify pull` with `xliffDialect: angular` (ICU ↔ `<ph>` / `VAR_PLURAL`), `@@id` key contract, `ng build --localize`, push from `ng extract-i18n` |
+| [`examples/rails-yaml`](examples/rails-yaml) | build-time | Rails YAML | Ruby I18n (`config/locales`) | `translify pull` with `format: yaml` / `yamlDialect: rails` (ICU ↔ `%{name}`, plural hashes, rails-i18n framework data kept), loaded by Ruby I18n and checked against `i18n-tasks normalize` in CI |
 
 ## Which style?
 
