@@ -82,6 +82,18 @@ jobs:
       # The hosted image sets ANDROID_HOME with build-tools and platforms; verify.sh picks the highest of each.
       - run: ./verify.sh
 
+  rails-yaml:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: examples/rails-yaml } }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: ruby/setup-ruby@v1
+        with: { ruby-version: '3.3', bundler-cache: true, working-directory: examples/rails-yaml }
+      - run: ./verify.sh
+
   # Weekly, not per PR: Actions minutes are a shared pool across the Translify repos.
   # The CLI is pinned so a breaking 0.x release cannot turn this job red for reasons unrelated to drift.
   # examples/* are pulled from the production environment by translify-pull-on-publish.yml, so their drift is
@@ -116,4 +128,8 @@ jobs:
       - name: ios-strings
         run: npx -y @chesterbrains/translify-cli@0.10.1 status --from env:production
         working-directory: examples/ios-strings
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
+      - name: rails-yaml
+        run: npx -y @chesterbrains/translify-cli@0.11.1 status --from env:production
+        working-directory: examples/rails-yaml
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }

@@ -3,7 +3,7 @@
 # Build step is ci.yml called as a reusable workflow; the CLI is pinned like the other jobs.
 #
 # When Acme Ecom's production environment is published, the project's GitHub webhook sends a repository_dispatch
-# here. The `pull` job pulls `env:production` into the three build-time examples (catalog/ is the source that gets
+# here. The `pull` job pulls `env:production` into the build-time examples (catalog/ is the source that gets
 # pushed, never pulled; react-i18next-runtime has no files), commits them on one branch per batch and opens a pull
 # request with the publish summary. `build` runs ci.yml on that branch; `merge` merges when it passed.
 #
@@ -51,9 +51,9 @@ jobs:
       - name: Pull
         run: |
           set -euo pipefail
-          for dir in examples/flutter-arb examples/angular-xliff examples/ios-xcstrings examples/android-xml examples/ios-strings; do
+          for dir in examples/flutter-arb examples/angular-xliff examples/ios-xcstrings examples/android-xml examples/ios-strings examples/rails-yaml; do
             echo "::group::$dir"
-            (cd "$dir" && npx -y @chesterbrains/translify-cli@0.10.1 pull --from env:"$SLUG") || { echo "::endgroup::"; exit 1; }
+            (cd "$dir" && npx -y @chesterbrains/translify-cli@0.11.1 pull --from env:"$SLUG") || { echo "::endgroup::"; exit 1; }
             echo "::endgroup::"
           done
         env:

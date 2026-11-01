@@ -1,0 +1,9 @@
+base_locale: en
+locales: [en, it]
+
+data:
+  read:
+    - config/locales/%{locale}.yml
+  yaml:
+    write:
+      line_width: -1
