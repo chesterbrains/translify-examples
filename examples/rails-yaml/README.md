@@ -26,11 +26,11 @@ Translify stores ICU; the `rails` dialect renders Rails interpolation on the way
 | Translify | What `pull` writes |
 |---|---|
 | `Hello {name}` | `Hello %{name}` |
-| `{count, plural, zero {No items} one {# item} other {# items}}` | a hash `items:` with `one`, `other`, `zero` (`#` becomes `%{count}`) |
+| `{count, plural, =0 {No items} one {# item} other {# items}}` | a hash `items:` with `one`, `other`, `zero` (`#` becomes `%{count}`); `=0` becomes `zero:` because `en` and `it` have no CLDR `zero` category |
 | `day_names.0` … `day_names.6` | a YAML sequence `day_names:` |
-| an empty list slot (`abbr_month_names.0`) | `-` (nil), which `I18n.l` expects for the first month |
-| `:year`, `:month`, `:day` | raw symbols `- :year` |
-| `:"app.cart.title"` | the link kept as a raw symbol, `heading: :app.cart.title`, which Rails resolves at lookup time |
+| a nil list item (no key of its own; the list remembers its position) | `-` (nil), which `I18n.l` expects for the first month |
+| `[:year, :month, :day]` (one raw value) | the raw sequence `- :year`, `- :month`, `- :day` |
+| `:app.cart.title` | the link kept as a raw symbol, `heading: :app.cart.title`, which Rails resolves at lookup time |
 | `<b>Welcome</b> back` | kept verbatim, written quoted because it starts with `<` |
 | `3`, `false` | YAML scalars (`precision: 3`, `strip_insignificant_zeros: false`) |
 
@@ -47,6 +47,7 @@ A list is written only when every item is translated. A target locale with some 
 ## Run it
 
 ```sh
+export TRANSLIFY_SECRET_KEY=sk_...   # PULL scope
 npx translify pull        # writes config/locales/en.yml and it.yml
 bundle install
 ./verify.sh               # renders every key for it, then runs i18n-tasks normalize
