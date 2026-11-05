@@ -66,7 +66,24 @@ if ($rendered !== $expected) {
     exit(1);
 }
 
-// 2. Every pulled file must be exactly what Yaml::dump writes for its own content (block form at every depth, indent 4).
+// 2. The quoted scalars must still be strings once symfony/yaml has parsed the file: '007', 'yes' and 'no' are quoted
+// by the dumper because they look numeric or like YAML special words, and this is what keeps a YAML 1.1 reader (and a
+// future bare edit) from turning them into an int or a bool.
+foreach (glob('translations/messages.*.yaml') as $file) {
+    $data = Yaml::parse(file_get_contents($file));
+    foreach (['settings.agent', 'settings.confirm', 'settings.decline'] as $key) {
+        if (\array_key_exists($key, $data) && !\is_string($data[$key])) {
+            echo "$file: $key parses as " . get_debug_type($data[$key]) . ", not string: the value lost its quotes\n";
+            exit(1);
+        }
+    }
+    if (($data['settings.agent'] ?? '007') !== '007') {
+        echo "$file: settings.agent is " . var_export($data['settings.agent'], true) . ", not the string '007'\n";
+        exit(1);
+    }
+}
+
+// 3. Every pulled file must be exactly what Yaml::dump writes for its own content (block form at every depth, indent 4).
 foreach (glob('translations/*.yaml') as $file) {
     $bytes = file_get_contents($file);
     $dumped = Yaml::dump(Yaml::parse($bytes), PHP_INT_MAX, 4);
@@ -77,4 +94,4 @@ foreach (glob('translations/*.yaml') as $file) {
     }
 }
 
-echo "ok: it output matches expected/it.json and every translations/*.yaml is byte-identical to Yaml::dump\n";
+echo "ok: it output matches expected/it.json, the quoted scalars are strings and every translations/*.yaml is byte-identical to Yaml::dump\n";

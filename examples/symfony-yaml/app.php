@@ -45,8 +45,5 @@ foreach ([0, 1, 5] as $n) {
     $out["items_legacy_$n"] = $t('cart.items', ['%count%' => $n]);
     $out["items_icu_$n"] = $t('items', ['%count%' => $n], 'checkout');
 }
-// The YAML quoting kept these strings: a bare yes / no / 007 would come back as bool / int from a YAML 1.1 loader.
-$out['settings_types'] = [gettype($out['settings_agent']), gettype($out['settings_confirm']), gettype($out['settings_decline'])];
-
 ksort($out);
 echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";

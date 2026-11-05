@@ -13,11 +13,6 @@
     "settings_agent": "007",
     "settings_confirm": "sì",
     "settings_decline": "no",
-    "settings_types": [
-        "string",
-        "string",
-        "string"
-    ],
     "step_card_label": "Numero della carta",
     "step_hints": [
         "Controlla l'importo",

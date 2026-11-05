@@ -32,7 +32,7 @@ Translify stores ICU; the `symfony` dialect renders legacy syntax on the way out
 |---|---|
 | `Hello {name}` | `messages`: `'Hello %name%'` · `checkout`: `'Hello {name}'`, and `trans()` renders both as `Ciao Ada` from the same `['%name%' => 'Ada']` call (`IntlFormatter` strips the `%`) |
 | `{count, plural, =0 {No items} =1 {One item} other {# items}}` | `messages`: `'{0} No items\|{1} One item\|%count% items\|%count% items'` — the exact branches first, then one positional segment per Symfony slot (`en` and `it` have `one` and `other`), so the `one` slot repeats `other`'s text, as the idiomatic `{1}` form implies · `checkout`: the ICU message verbatim |
-| `007`, `yes`, `no` | `'007'`, `'yes'`, `'no'`: the dumper quotes anything that looks numeric or like a YAML special word, and `verify.php` checks the three come back as strings. On push a bare `007` is still a string (symfony/yaml reads it that way), while a bare `7`, `true` or `2026-01-01` is the row error `nonStringLeaf`: quote it |
+| `007`, `yes`, `no` | `'007'`, `'yes'`, `'no'`: the dumper quotes anything that looks numeric or like a YAML special word, exactly as `Yaml::dump` does. symfony/yaml itself reads a bare `yes`, `no` or `007` as a string, so the quotes protect the files from YAML 1.1 tools and from a later edit, and `verify.php` checks that `Yaml::parse` still gives strings. On push a bare `007` is a string too, while a bare `7`, `true` or `2026-01-01` is the row error `nonStringLeaf`: quote it |
 | `Login \| Register` | `'Login \| Register'`: a lone pipe in prose stays text; push reads a pipe as a plural only next to an interval or `%count%` |
 | `app.title`, not translated in `it` | absent from `messages.it.yaml`; Symfony falls back to `en` and the app shows `Acme Ecom` |
 | `steps.hints.0` … `steps.hints.2` | in the `nested` layout a level whose keys are `0 … n-1` is written as a YAML sequence under `hints:`; Symfony's loader flattens it back to `steps.hints.0` |
@@ -45,7 +45,7 @@ Translify rebuilds every pulled file from the database; it never keeps the uploa
 
 ## What `verify.php` proves
 
-`php verify.php` runs `app.php it`, which loads the pulled files with the standalone `Translator` (a `YamlFileLoader` per domain, `checkout+intl-icu` registered under that name exactly as the framework does), and compares its output with `expected/it.json`: both greetings render `Ciao Ada`, the legacy and the ICU plural give the same three strings for 0, 1 and 5, the quoted scalars are strings, the untranslated key falls back to English, the nested keys resolve.
+`php verify.php` runs `app.php it`, which loads the pulled files with the standalone `Translator` (a `YamlFileLoader` per domain, `checkout+intl-icu` registered under that name exactly as the framework does), and compares its output with `expected/it.json`: both greetings render `Ciao Ada`, the legacy and the ICU plural give the same three strings for 0, 1 and 5, `007` renders as `007`, the untranslated key falls back to English, the nested keys resolve. It then parses the `messages` files with symfony/yaml and checks that `settings.agent`, `settings.confirm` and `settings.decline` are still strings (`'007'`, not `7`).
 
 Then it re-parses each `translations/*.yaml` and dumps it again with `Yaml::dump($data, PHP_INT_MAX, 4)`: the bytes must be identical to the file. Translify's emitter is a port of Symfony's own dumper, so what `pull` writes is what `Yaml::dump` would write for the same content, byte for byte.
 
