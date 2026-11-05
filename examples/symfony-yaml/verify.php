@@ -9,19 +9,23 @@ if (!extension_loaded('intl')) {
     exit(1);
 }
 
+if (!is_file(__DIR__ . '/vendor/autoload.php')) {
+    fwrite(STDERR, "vendor/autoload.php is missing: run `composer install` first\n");
+    exit(1);
+}
+
 require __DIR__ . '/vendor/autoload.php';
 
 use Symfony\Component\Yaml\Yaml;
 
 chdir(__DIR__);
 
-/** Runs a command and returns [exit code, stdout]. */
+/** Runs a command and returns [exit code, stdout]; the exit code is -1 when the command cannot be started. */
 function run(array $command): array
 {
-    $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+    $process = @proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
     if (!\is_resource($process)) {
-        fwrite(STDERR, 'cannot start ' . implode(' ', $command) . "\n");
-        exit(1);
+        return [-1, ''];
     }
     $stdout = stream_get_contents($pipes[1]);
     $stderr = stream_get_contents($pipes[2]);
@@ -35,24 +39,48 @@ function run(array $command): array
     return [$code, $stdout];
 }
 
-/** Prints a unified diff of two texts (expected first). */
+/** Prints a unified diff of two texts (expected first); without `diff` on the PATH, a plain line-by-line diff. */
 function printDiff(string $expected, string $actual, string $expectedLabel, string $actualLabel): void
 {
     $dir = sys_get_temp_dir() . '/symfony-yaml-verify-' . getmypid();
     @mkdir($dir);
     file_put_contents("$dir/expected", $expected);
     file_put_contents("$dir/actual", $actual);
-    [, $diff] = run(['diff', '-u', '--label', $expectedLabel, '--label', $actualLabel, "$dir/expected", "$dir/actual"]);
-    echo $diff;
+    [$code, $diff] = run(['diff', '-u', '--label', $expectedLabel, '--label', $actualLabel, "$dir/expected", "$dir/actual"]);
     unlink("$dir/expected");
     unlink("$dir/actual");
     rmdir($dir);
+    if ($code === 0 || $code === 1) {
+        echo $diff;
+
+        return;
+    }
+
+    // diff is not installed (Windows without Git Bash) or failed to start: show the differing lines by number.
+    echo "--- $expectedLabel\n+++ $actualLabel\n";
+    $expectedLines = explode("\n", $expected);
+    $actualLines = explode("\n", $actual);
+    $count = max(\count($expectedLines), \count($actualLines));
+    for ($i = 0; $i < $count; $i++) {
+        $e = $expectedLines[$i] ?? null;
+        $a = $actualLines[$i] ?? null;
+        if ($e === $a) {
+            continue;
+        }
+        echo '@@ line ' . ($i + 1) . " @@\n";
+        if ($e !== null) {
+            echo "-$e\n";
+        }
+        if ($a !== null) {
+            echo "+$a\n";
+        }
+    }
 }
 
 // 1. What the app renders for it must match expected/it.json.
 [$code, $rendered] = run([PHP_BINARY, 'app.php', 'it']);
 if ($code !== 0) {
-    fwrite(STDERR, "app.php it exited with $code\n");
+    fwrite(STDERR, $code === -1 ? "cannot start php app.php it\n" : "app.php it exited with $code\n");
     exit(1);
 }
 if (!is_file('expected/it.json')) {
