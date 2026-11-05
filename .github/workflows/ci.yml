@@ -94,6 +94,21 @@ jobs:
         with: { ruby-version: '3.3', bundler-cache: true, working-directory: examples/rails-yaml }
       - run: ./verify.sh
 
+  symfony-yaml:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: examples/symfony-yaml } }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      # intl is listed explicitly: without it the +intl-icu domain renders through the legacy formatter and the proof is void.
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', extensions: intl, tools: 'composer:v2' }
+      - run: composer validate --strict
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php verify.php
+
   # Weekly, not per PR: production only changes on a publish, and translify-pull-on-publish.yml already syncs each one;
   # this catches anything that slipped past it (a failed pull, a hand edit).
   # The CLI is pinned so a breaking 0.x release cannot turn this job red for reasons unrelated to drift.
@@ -133,4 +148,8 @@ jobs:
       - name: rails-yaml
         run: npx -y @chesterbrains/translify-cli@0.11.1 status --from env:production
         working-directory: examples/rails-yaml
+        env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
+      - name: symfony-yaml
+        run: npx -y @chesterbrains/translify-cli@0.12.1 status --from env:production
+        working-directory: examples/symfony-yaml
         env: { TRANSLIFY_SECRET_KEY: '${{ secrets.TRANSLIFY_SECRET_KEY }}' }
