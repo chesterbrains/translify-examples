@@ -2,7 +2,7 @@ app.title: 'Acme Ecom'
 cart.actions: 'Login | Register'
 cart.address: "Customer's address"
 cart.greeting: 'Hello %name%'
-cart.items: '{0} No items|{1} One item|]1,Inf[ %count% items'
+cart.items: '{0} No items|{1} One item|%count% items|%count% items'
 settings.agent: '007'
 settings.confirm: 'yes'
 settings.decline: 'no'
