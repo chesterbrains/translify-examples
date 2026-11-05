@@ -60,7 +60,7 @@ npx translify pull        # writes translations/*.yaml
 php verify.php            # renders every key for it, then the Yaml::dump byte check
 ```
 
-Needs PHP 8.3 with `intl` (Homebrew's `php` ships it) and Composer. Prints `ok` on success; on a mismatch it prints a unified diff and exits 1.
+Needs PHP 8.3 with `intl` (Homebrew's `php` ships it) and Composer; without `vendor/` the script stops with a `composer install` hint. Prints `ok` on success; on a mismatch it prints a unified diff (a plain line-by-line diff when `diff` is not on the PATH, as on Windows without Git Bash) and exits 1.
 
 CI runs `translify status` on this folder like on the others, so the committed files are proven identical to a fresh pull.
 
