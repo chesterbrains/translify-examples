@@ -1,0 +1,9 @@
+{
+  "cart.actions": "Accedi | Registrati",
+  "cart.address": "L'indirizzo del cliente",
+  "cart.greeting": "Ciao {name}",
+  "cart.items": "{count, plural, =0 {Nessun articolo} =1 {Un articolo} other {# articoli}}",
+  "settings.agent": "007",
+  "settings.confirm": "sì",
+  "settings.decline": "no"
+}
