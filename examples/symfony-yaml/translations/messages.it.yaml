@@ -1,0 +1,7 @@
+cart.actions: 'Accedi | Registrati'
+cart.address: "L'indirizzo del cliente"
+cart.greeting: 'Ciao %name%'
+cart.items: '{0} Nessun articolo|{1} Un articolo|%count% articoli|%count% articoli'
+settings.agent: '007'
+settings.confirm: sì
+settings.decline: 'no'

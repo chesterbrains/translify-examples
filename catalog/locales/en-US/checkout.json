@@ -1,0 +1,9 @@
+{
+  "greeting": "Hello {name}",
+  "items": "{count, plural, =0 {No items} =1 {One item} other {# items}}",
+  "steps.hints.0": "Check the amount",
+  "steps.hints.1": "Pick a method",
+  "steps.hints.2": "Confirm",
+  "steps.payment.card.label": "Card number",
+  "steps.payment.title": "Payment"
+}

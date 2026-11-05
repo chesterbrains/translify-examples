@@ -1,0 +1,23 @@
+{
+    "app_title": "Acme Ecom",
+    "cart_actions": "Accedi | Registrati",
+    "cart_address": "L'indirizzo del cliente",
+    "greeting_icu": "Ciao Ada",
+    "greeting_legacy": "Ciao Ada",
+    "items_icu_0": "Nessun articolo",
+    "items_icu_1": "Un articolo",
+    "items_icu_5": "5 articoli",
+    "items_legacy_0": "Nessun articolo",
+    "items_legacy_1": "Un articolo",
+    "items_legacy_5": "5 articoli",
+    "settings_agent": "007",
+    "settings_confirm": "sì",
+    "settings_decline": "no",
+    "step_card_label": "Numero della carta",
+    "step_hints": [
+        "Controlla l'importo",
+        "Scegli un metodo",
+        "Conferma"
+    ],
+    "step_title": "Pagamento"
+}

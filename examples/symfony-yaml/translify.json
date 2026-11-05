@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/@chesterbrains/translify-cli/schema/translify.schema.json",
+  "apiUrl": "https://translify.tommasofeltrin.work/api",
+  "files": [
+    {
+      "pattern": "translations/checkout+intl-icu.{locale}.yaml",
+      "format": "yaml",
+      "yamlDialect": "symfony-icu",
+      "namespace": "checkout",
+      "jsonStyle": "nested"
+    },
+    {
+      "pattern": "translations/messages.{locale}.yaml",
+      "format": "yaml",
+      "yamlDialect": "symfony",
+      "namespace": "messages",
+      "jsonStyle": "flat"
+    }
+  ],
+  "locales": {
+    "en": "en-US",
+    "it": "it-IT"
+  }
+}

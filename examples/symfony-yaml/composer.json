@@ -1,0 +1,19 @@
+{
+    "name": "translify/example-symfony-yaml",
+    "description": "Translify example: translations/ pulled as Symfony YAML (legacy and +intl-icu domains), verified with the standalone Translator",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "ext-intl": "*",
+        "symfony/config": "^7.4",
+        "symfony/translation": "^7.4",
+        "symfony/yaml": "^7.4"
+    },
+    "config": {
+        "platform": {
+            "php": "8.3.0"
+        },
+        "sort-packages": true
+    }
+}

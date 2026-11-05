@@ -1,0 +1,10 @@
+{
+  "app.title": "Acme Ecom",
+  "cart.actions": "Login | Register",
+  "cart.address": "Customer's address",
+  "cart.greeting": "Hello {name}",
+  "cart.items": "{count, plural, =0 {No items} =1 {One item} other {# items}}",
+  "settings.agent": "007",
+  "settings.confirm": "yes",
+  "settings.decline": "no"
+}
