@@ -42,22 +42,17 @@ export const toErrorEvent = (
   at,
 });
 
-/** The last `loaded` or load-phase `error` for a locale: what the page can show for it right now. */
-export const lastLoadOutcome = (
-  events: readonly ClientEvent[],
-  locale: string,
-): Extract<ClientEvent, { kind: 'loaded' }> | ClientErrorEvent | undefined => {
-  for (let index = events.length - 1; index >= 0; index -= 1) {
-    const event = events[index]!;
-    if (event.locale !== locale) continue;
-    if (event.kind === 'loaded') return event;
-    if (event.kind === 'error' && event.phase === 'load') return event;
-  }
+export type LoadOutcome = Extract<ClientEvent, { kind: 'loaded' }> | ClientErrorEvent;
 
-  return undefined;
-};
+const isLoadOutcome = (event: ClientEvent): event is LoadOutcome =>
+  event.kind === 'loaded' || (event.kind === 'error' && event.phase === 'load');
 
 let events: ClientEvent[] = [];
+/**
+ * What the page renders from: the last `loaded` or load-phase `error` per locale. Kept apart
+ * from the log so the drawer's Clear button and the log's cap never change what the app shows.
+ */
+let loadOutcomes = new Map<string, LoadOutcome>();
 const listeners = new Set<() => void>();
 
 let notifyQueued = false;
@@ -80,8 +75,14 @@ const subscribe = (listener: () => void): (() => void) => {
 
 export const appendClientEvent = (event: ClientEvent): void => {
   events = pushCapped(events, event, MAX_CLIENT_EVENTS);
+  if (isLoadOutcome(event) && event.locale !== undefined) {
+    loadOutcomes = new Map(loadOutcomes).set(event.locale, event);
+  }
   notify();
 };
+
+/** The last load outcome for a locale: a bundle, or the load that failed. Unaffected by Clear. */
+export const readLoadOutcome = (locale: string): LoadOutcome | undefined => loadOutcomes.get(locale);
 
 export const clearClientEvents = (): void => {
   events = [];
@@ -89,3 +90,6 @@ export const clearClientEvents = (): void => {
 };
 
 export const useClientEvents = (): ClientEvent[] => useSyncExternalStore(subscribe, () => events);
+
+export const useLoadOutcome = (locale: string): LoadOutcome | undefined =>
+  useSyncExternalStore(subscribe, () => loadOutcomes.get(locale));

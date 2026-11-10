@@ -135,7 +135,7 @@ i18next
 
 ## What delivery guarantees
 
-- The key travels as `?key=pk_…`; a publishable key is bound to one project and a secret key is refused with `401`.
+- The key travels as `?key=pk_…`; a publishable key is bound to one project. A secret key in the URL is refused by the API (`400 SECRET_KEY_IN_URL`), and the client refuses it before any request is made.
 - Wrong project, environment or locale: `404` with no detail. Missing or revoked key: `401`. Unknown namespace: `200 {}`.
 - Rate limits on delivery: 300 requests / 60 s per IP and 6000 / 60 s per key, answered with `429`. Ordinary traffic never meets them; the diagnostics burst of 40 proves it.
 - The HTTP details (`Cache-Control`, `ETag`, `304`, preflight caching) are the package's job; the [`/docs` page](https://translify.tommasofeltrin.work/docs) and the package README document them.

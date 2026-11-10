@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { TranslifyError } from '@translifyhq/client';
-import { lastLoadOutcome, MAX_CLIENT_EVENTS, toErrorEvent, type ClientEvent } from './client-events';
+import {
+  appendClientEvent,
+  clearClientEvents,
+  MAX_CLIENT_EVENTS,
+  readLoadOutcome,
+  toErrorEvent,
+  type ClientEvent,
+} from './client-events';
 
 const loaded = (locale: string, at: number): ClientEvent => ({ kind: 'loaded', locale, keys: 3, ms: 2, at });
 const failed = (locale: string, at: number): ClientEvent => ({
@@ -32,25 +39,32 @@ describe('toErrorEvent', () => {
   });
 });
 
-describe('lastLoadOutcome', () => {
-  it('follows the asked locale, not the newest event', () => {
-    const events = [loaded('en-US', 1), failed('it-IT', 2), loaded('en-US', 3)];
-    expect(lastLoadOutcome(events, 'it-IT')?.kind).toBe('error');
-    expect(lastLoadOutcome(events, 'en-US')?.at).toBe(3);
-    expect(lastLoadOutcome(events, 'de-DE')).toBeUndefined();
-  });
-
-  it('ignores revalidate errors and changed/revalidated rows', () => {
-    const events: ClientEvent[] = [
-      loaded('it-IT', 1),
-      { kind: 'error', locale: 'it-IT', phase: 'revalidate', code: 'RATE_LIMITED', status: 429, message: 'x', at: 2 },
-      { kind: 'changed', locale: 'it-IT', keys: 3, at: 3 },
-      { kind: 'revalidated', locale: 'it-IT', changed: false, ms: 1, at: 4 },
-    ];
-    expect(lastLoadOutcome(events, 'it-IT')?.kind).toBe('loaded');
-  });
-});
-
 it('caps the store at MAX_CLIENT_EVENTS', () => {
   expect(MAX_CLIENT_EVENTS).toBe(200);
+});
+
+describe('readLoadOutcome (what the page renders from)', () => {
+  it('survives Clear: the log is erasable, the page state is not', () => {
+    appendClientEvent(failed('it-IT', 1));
+    appendClientEvent(loaded('en-US', 2));
+    clearClientEvents();
+    expect(readLoadOutcome('it-IT')?.kind).toBe('error');
+    expect(readLoadOutcome('en-US')?.kind).toBe('loaded');
+    expect(readLoadOutcome('de-DE')).toBeUndefined();
+  });
+
+  it('survives eviction from the capped log', () => {
+    appendClientEvent(failed('fr-FR', 1));
+    for (let index = 0; index < MAX_CLIENT_EVENTS + 5; index += 1) appendClientEvent(loaded('en-US', 10 + index));
+    expect(readLoadOutcome('fr-FR')?.kind).toBe('error');
+  });
+
+  it('is replaced by the next load outcome for that locale and ignores other kinds', () => {
+    appendClientEvent(failed('es-ES', 1));
+    appendClientEvent({ kind: 'changed', locale: 'es-ES', keys: 3, at: 2 });
+    appendClientEvent({ kind: 'error', locale: 'es-ES', phase: 'revalidate', code: 'RATE_LIMITED', status: 429, message: 'x', at: 3 });
+    expect(readLoadOutcome('es-ES')?.kind).toBe('error');
+    appendClientEvent(loaded('es-ES', 4));
+    expect(readLoadOutcome('es-ES')?.kind).toBe('loaded');
+  });
 });
