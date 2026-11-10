@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TranslifyClient } from '@translifyhq/client';
+import { appendClientEvent } from '../diagnostics/client-events';
+import { revalidate } from './revalidate';
 
 export const LocaleSwitcher = ({
   locales,
   showRevalidate,
+  client,
 }: {
   locales: string[];
-  /** The cache-busting button belongs to diagnostics mode, not the example. */
+  /** The revalidate button belongs to diagnostics mode, not the example. */
   showRevalidate: boolean;
+  client: TranslifyClient;
 }): React.ReactNode => {
   const { t, i18n } = useTranslation();
   const labelFor = (locale: string): string => (locale.startsWith('it') ? t('localeIt') : t('localeEn'));
@@ -19,19 +24,16 @@ export const LocaleSwitcher = ({
   };
 
   /**
-   * `Cache-Control: public, max-age=30` means a repeat request inside 30 s is
-   * served from the browser's HTTP cache, and after that the browser revalidates
-   * on its own and still hands the page a 200. This forces a real round trip with
-   * `If-None-Match`, so the server's 304 shows up in the log instead of staying
-   * invisible.
+   * The client revalidates on its own after every `load`; this asks it to do so right now.
+   * A changed bundle reaches the screen through the backend's `subscribe` listener;
+   * `reloadResources` additionally makes i18next re-read, which finds the fresh bundle in
+   * the client's memory.
    */
-  const revalidate = (): void => {
+  const forceRevalidate = (): void => {
     setBusy(true);
-    void i18n
-      .reloadResources([i18n.language])
-      .finally(() => {
-        setBusy(false);
-      });
+    void revalidate(client, i18n.language, appendClientEvent)
+      .then((ok) => (ok ? i18n.reloadResources([i18n.language]) : undefined))
+      .finally(() => setBusy(false));
   };
 
   return (
@@ -50,12 +52,7 @@ export const LocaleSwitcher = ({
         </button>
       ))}
       {showRevalidate && (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={revalidate}
-          className="rounded border border-neutral-300 px-3 py-1 text-sm"
-        >
+        <button type="button" disabled={busy} onClick={forceRevalidate} className="rounded border border-neutral-300 px-3 py-1 text-sm">
           Force revalidate
         </button>
       )}

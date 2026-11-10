@@ -59,7 +59,7 @@ if (!result.ok) {
     .then(() => {
       createRoot(root).render(
         <StrictMode>
-          <App config={config} />
+          <App config={config} client={client} />
         </StrictMode>,
       );
     })
