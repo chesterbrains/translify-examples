@@ -5,6 +5,7 @@ import {
   clearClientEvents,
   MAX_CLIENT_EVENTS,
   readLoadOutcome,
+  readClientEvents,
   toErrorEvent,
   type ClientEvent,
 } from './client-events';
@@ -66,5 +67,16 @@ describe('readLoadOutcome (what the page renders from)', () => {
     expect(readLoadOutcome('es-ES')?.kind).toBe('error');
     appendClientEvent(loaded('es-ES', 4));
     expect(readLoadOutcome('es-ES')?.kind).toBe('loaded');
+  });
+});
+
+describe('appendClientEvent', () => {
+  it('gives identical payloads distinct ids, so a list can key on them', () => {
+    clearClientEvents();
+    appendClientEvent(loaded('en-US', 1));
+    appendClientEvent(loaded('en-US', 1));
+    const [first, second] = readClientEvents();
+    expect(first?.id).toBeTypeOf('number');
+    expect(second?.id).not.toBe(first?.id);
   });
 });

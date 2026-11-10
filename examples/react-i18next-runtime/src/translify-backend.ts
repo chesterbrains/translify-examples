@@ -61,6 +61,8 @@ export const createBackend = (
   const languages = new Set<string>();
   /** The bundle identity last mirrored per language; the client keeps identity until content changes. */
   const lastSeen = new Map<string, TranslifyBundle>();
+  /** The bundle identity last reported as `loaded` per language: one row per load, not one per namespace. */
+  const lastLoaded = new Map<string, TranslifyBundle>();
 
   const mirror = (store: ResourceWriter): void => {
     for (const language of languages) {
@@ -90,7 +92,10 @@ export const createBackend = (
       client
         .load(language)
         .then((bundle) => {
-          emit({ kind: 'loaded', locale: language, keys: Object.keys(bundle).length, ms: now() - started, at: clock() });
+          if (lastLoaded.get(language) !== bundle) {
+            lastLoaded.set(language, bundle);
+            emit({ kind: 'loaded', locale: language, keys: Object.keys(bundle).length, ms: now() - started, at: clock() });
+          }
           if (!lastSeen.has(language)) lastSeen.set(language, bundle);
           callback(null, stripNamespace(bundle, namespace));
         })

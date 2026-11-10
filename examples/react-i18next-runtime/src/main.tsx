@@ -18,15 +18,19 @@ const FailedToStart = ({ error }: { error: unknown }): React.ReactNode => (
   </main>
 );
 
-const result = readConfig(import.meta.env as Record<string, string | undefined>);
+const reactRoot = createRoot(root);
+const render = (node: React.ReactNode): void => {
+  reactRoot.render(<StrictMode>{node}</StrictMode>);
+};
 
-if (!result.ok) {
-  createRoot(root).render(
-    <StrictMode>
-      <SetupScreen missing={result.missing} />
-    </StrictMode>,
-  );
-} else {
+const start = (): void => {
+  const result = readConfig(import.meta.env as Record<string, string | undefined>);
+  if (!result.ok) {
+    render(<SetupScreen missing={result.missing} />);
+
+    return;
+  }
+
   const { config } = result;
   let client: TranslifyClient;
   try {
@@ -45,29 +49,16 @@ if (!result.ok) {
     });
   } catch (error) {
     // `createTranslify` validates synchronously: a secret key or a relative base URL ends here.
-    createRoot(root).render(
-      <StrictMode>
-        <FailedToStart error={error} />
-      </StrictMode>,
-    );
-    throw error;
+    render(<FailedToStart error={error} />);
+
+    return;
   }
 
-  // i18next resolves even when the backend read fails; App reads the client events to decide
-  // whether to render the error card.
+  // i18next resolves even when the backend read fails; App reads the client's load outcome to
+  // decide whether to render the error card.
   void initI18n(client, config)
-    .then(() => {
-      createRoot(root).render(
-        <StrictMode>
-          <App config={config} client={client} />
-        </StrictMode>,
-      );
-    })
-    .catch((error: unknown) => {
-      createRoot(root).render(
-        <StrictMode>
-          <FailedToStart error={error} />
-        </StrictMode>,
-      );
-    });
-}
+    .then(() => render(<App config={config} client={client} />))
+    .catch((error: unknown) => render(<FailedToStart error={error} />));
+};
+
+start();

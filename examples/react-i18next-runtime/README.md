@@ -123,7 +123,7 @@ i18next
 - Delivery names keys `cart.cartTitle`; `stripNamespace` makes them `cartTitle` inside the `cart` namespace.
 - Plurals and arguments are ICU in Translify (`{count, plural, one {{count} item} other {{count} items}}`), so the app uses `i18next-icu`. The plugin memoises each compiled message per key, so it must hear the same `added` event react-i18next re-renders on; without `bindI18nStore` a publish would re-render the page with the old compiled strings.
 - Both caches hear `added`: `react.bindI18nStore` re-renders every `useTranslation`, the ICU plugin drops its compiled messages.
-- "Force revalidate" (diagnostics mode) is `client.refresh(language)` followed by `i18n.reloadResources`.
+- "Force revalidate" (diagnostics mode) is `client.refresh(language)`; the `subscribe` listener mirrors a changed bundle before it resolves, so i18next re-reads only when the locale had never loaded.
 - The client lives as long as the page; nothing calls `dispose()`.
 
 ## What the package does for you

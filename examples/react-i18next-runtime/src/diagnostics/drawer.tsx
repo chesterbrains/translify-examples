@@ -116,7 +116,7 @@ export const DiagnosticsDrawer = ({ config }: { config: TranslifyConfig }): Reac
               <ul className="mt-1 max-h-60 overflow-y-auto font-mono text-xs">
                 {[...events].reverse().map((event) => (
                   <li
-                    key={`${event.at}-${event.kind}-${event.locale ?? ''}`}
+                    key={event.id}
                     className={`border-b border-neutral-200 py-1 ${event.kind === 'error' ? 'text-red-700' : ''}`}
                   >
                     {describeEvent(event)}
