@@ -1,11 +1,29 @@
 import { useState } from 'react';
+import { VERSION } from '@translifyhq/client';
 import type { TranslifyConfig } from '../config';
 import { maskKey, type DeliveryExchange } from './raw-fetch';
 import { PROBES, verdictOf, type Verdict } from './probes';
 import { clearExchanges, useExchanges, useMissingKeys } from './exchange-log';
+import { clearClientEvents, useClientEvents, type ClientEvent } from './client-events';
 
 const statusOf = (exchange: DeliveryExchange): string =>
   exchange.outcome.kind === 'network' ? 'network' : String(exchange.outcome.status);
+
+/** One line per fact the client reported. Only what the package exposes; no HTTP detail. */
+const describeEvent = (event: ClientEvent): string => {
+  switch (event.kind) {
+    case 'loaded':
+      return `loaded ${event.locale} · ${event.keys} keys · ${Math.round(event.ms)} ms`;
+    case 'changed':
+      return `changed ${event.locale} · ${event.keys} keys`;
+    case 'revalidated':
+      return `revalidated ${event.locale} · ${event.changed ? 'changed' : 'unchanged'} · ${Math.round(event.ms)} ms`;
+    case 'error':
+      return `error ${event.phase}${event.locale === undefined ? '' : ` ${event.locale}`} · ${event.code}${
+        event.status === undefined ? '' : ` · ${event.status}`
+      } · ${event.message}`;
+  }
+};
 
 const ExchangeRow = ({ exchange }: { exchange: DeliveryExchange }): React.ReactNode => {
   const [open, setOpen] = useState(false);
@@ -30,29 +48,34 @@ const ExchangeRow = ({ exchange }: { exchange: DeliveryExchange }): React.ReactN
   );
 };
 
+interface ProbeRun {
+  verdict: Verdict;
+  note?: string;
+}
+
 export const DiagnosticsDrawer = ({ config }: { config: TranslifyConfig }): React.ReactNode => {
   const [open, setOpen] = useState(false);
-  const [verdicts, setVerdicts] = useState<Record<string, Verdict>>({});
+  const [runs, setRuns] = useState<Record<string, ProbeRun>>({});
   const [running, setRunning] = useState<string | undefined>(undefined);
   const exchanges = useExchanges();
   const missingKeys = useMissingKeys();
+  const events = useClientEvents();
 
   const runProbe = async (id: string): Promise<void> => {
     const probe = PROBES.find((entry) => entry.id === id);
     if (probe === undefined) return;
     setRunning(id);
-    const results = await probe.run(config);
-    setVerdicts((previous) => ({ ...previous, [id]: verdictOf(probe, results) }));
+    const result = await probe.run(config);
+    setRuns((previous) => ({
+      ...previous,
+      [id]: { verdict: verdictOf(probe, result), ...(result.note === undefined ? {} : { note: result.note }) },
+    }));
     setRunning(undefined);
   };
 
   return (
     <section className="rounded border border-neutral-300">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="w-full px-4 py-2 text-left text-sm font-semibold"
-      >
+      <button type="button" onClick={() => setOpen(!open)} className="w-full px-4 py-2 text-left text-sm font-semibold">
         {open ? '▾' : '▸'} Diagnostics
       </button>
       {open && (
@@ -68,39 +91,39 @@ export const DiagnosticsDrawer = ({ config }: { config: TranslifyConfig }): Reac
               <dd>{config.envSlug}</dd>
               <dt>locales</dt>
               <dd>{config.locales.join(', ')}</dd>
-              <dt>api key</dt>
+              <dt>delivery key</dt>
               <dd>{maskKey(config.apiKey)}</dd>
             </dl>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold">Probes</h3>
-            <ul className="mt-1 space-y-1">
-              {PROBES.map((probe) => (
-                <li key={probe.id} className="flex items-center gap-3 text-xs">
-                  <button
-                    type="button"
-                    disabled={running !== undefined}
-                    onClick={() => void runProbe(probe.id)}
-                    className="w-56 shrink-0 rounded border border-neutral-300 px-2 py-1 text-left"
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">
+                Client (<code>@translifyhq/client</code> {VERSION}) · {events.length}
+              </h3>
+              <button type="button" onClick={clearClientEvents} className="rounded border border-neutral-300 px-2 py-1 text-xs">
+                Clear
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-neutral-600">
+              What the package reports: <code>load</code> and <code>refresh</code> results, bundle changes from{' '}
+              <code>subscribe</code>, background failures from <code>onError</code>. A background revalidation answered
+              with <code>304</code> is silent by design; the Network tab shows it.
+            </p>
+            {events.length === 0 ? (
+              <p className="mt-1 text-xs text-neutral-400">Nothing yet.</p>
+            ) : (
+              <ul className="mt-1 max-h-60 overflow-y-auto font-mono text-xs">
+                {[...events].reverse().map((event) => (
+                  <li
+                    key={`${event.at}-${event.kind}-${event.locale ?? ''}`}
+                    className={`border-b border-neutral-200 py-1 ${event.kind === 'error' ? 'text-red-700' : ''}`}
                   >
-                    {probe.label}
-                  </button>
-                  <span
-                    className={
-                      verdicts[probe.id] === 'pass'
-                        ? 'w-12 font-semibold text-green-700'
-                        : verdicts[probe.id] === 'fail'
-                          ? 'w-12 font-semibold text-red-700'
-                          : 'w-12 text-neutral-400'
-                    }
-                  >
-                    {verdicts[probe.id] ?? (running === probe.id ? '…' : '—')}
-                  </span>
-                  <span className="text-neutral-600">{probe.expectation}</span>
-                </li>
-              ))}
-            </ul>
+                    {describeEvent(event)}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div>
@@ -114,22 +137,53 @@ export const DiagnosticsDrawer = ({ config }: { config: TranslifyConfig }): Reac
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-xs text-neutral-600">
-              Delivery exposes <code>ETag</code> over CORS, so every exchange below shows the
-              validator it received. An ordinary read leaves revalidation to the browser cache;
-              &ldquo;Force revalidate&rdquo; sends <code>If-None-Match</code> itself and logs the
-              server&rsquo;s <code>304</code>.
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold">Probes</h3>
+            <p className="mt-1 text-xs text-neutral-600">
+              Raw requests the package gives no way to send: a missing key, a wrong slug, junk query parameters.
+              Each one is logged below.
             </p>
+            <ul className="mt-1 space-y-1">
+              {PROBES.map((probe) => {
+                const run = runs[probe.id];
+
+                return (
+                  <li key={probe.id} className="flex items-center gap-3 text-xs">
+                    <button
+                      type="button"
+                      disabled={running !== undefined}
+                      onClick={() => void runProbe(probe.id)}
+                      className="w-56 shrink-0 rounded border border-neutral-300 px-2 py-1 text-left"
+                    >
+                      {probe.label}
+                    </button>
+                    <span
+                      className={
+                        run?.verdict === 'pass'
+                          ? 'w-12 font-semibold text-green-700'
+                          : run?.verdict === 'fail'
+                            ? 'w-12 font-semibold text-red-700'
+                            : 'w-12 text-neutral-400'
+                      }
+                    >
+                      {run?.verdict ?? (running === probe.id ? '…' : '—')}
+                    </span>
+                    <span className="text-neutral-600">
+                      {probe.expectation}
+                      {run?.note === undefined ? '' : ` — observed: ${run.note}`}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Exchanges ({exchanges.length})</h3>
-              <button
-                type="button"
-                onClick={clearExchanges}
-                className="rounded border border-neutral-300 px-2 py-1 text-xs"
-              >
+              <h3 className="text-sm font-semibold">Probe requests ({exchanges.length})</h3>
+              <button type="button" onClick={clearExchanges} className="rounded border border-neutral-300 px-2 py-1 text-xs">
                 Clear
               </button>
             </div>
