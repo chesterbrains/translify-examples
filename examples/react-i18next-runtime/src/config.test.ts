@@ -5,7 +5,7 @@ const complete = {
   VITE_TRANSLIFY_BASE_URL: 'http://localhost:3000/api',
   VITE_TRANSLIFY_PROJECT_SLUG: 'acme-ecom',
   VITE_TRANSLIFY_ENV_SLUG: 'production',
-  VITE_TRANSLIFY_API_KEY: 'tlf_live_abc123',
+  VITE_TRANSLIFY_API_KEY: 'pk_abc123',
   VITE_TRANSLIFY_LOCALES: 'en-US,it-IT',
 };
 
@@ -18,7 +18,7 @@ describe('readConfig', () => {
         baseUrl: 'http://localhost:3000/api',
         projectSlug: 'acme-ecom',
         envSlug: 'production',
-        apiKey: 'tlf_live_abc123',
+        apiKey: 'pk_abc123',
         locales: ['en-US', 'it-IT'],
       },
     });

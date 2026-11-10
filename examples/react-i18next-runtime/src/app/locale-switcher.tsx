@@ -25,14 +25,14 @@ export const LocaleSwitcher = ({
 
   /**
    * The client revalidates on its own after every `load`; this asks it to do so right now.
-   * A changed bundle reaches the screen through the backend's `subscribe` listener;
-   * `reloadResources` additionally makes i18next re-read, which finds the fresh bundle in
-   * the client's memory.
+   * A changed bundle reaches the screen through the backend's `subscribe` listener. Only a
+   * locale i18next never managed to load (a failed first read, so its store is empty) needs
+   * `reloadResources` afterwards; for a held locale it would just revalidate a second time.
    */
   const forceRevalidate = (): void => {
     setBusy(true);
     void revalidate(client, i18n.language, appendClientEvent)
-      .then((ok) => (ok ? i18n.reloadResources([i18n.language]) : undefined))
+      .then(({ ok, held }) => (ok && !held ? i18n.reloadResources([i18n.language]) : undefined))
       .finally(() => setBusy(false));
   };
 

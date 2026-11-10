@@ -24,6 +24,9 @@ export type ClientEvent =
 
 export type ClientErrorEvent = Extract<ClientEvent, { kind: 'error' }>;
 
+/** A logged event: the payload plus a monotonic id, since two events can share every other field. */
+export type LoggedClientEvent = ClientEvent & { id: number };
+
 export const MAX_CLIENT_EVENTS = 200;
 
 /** A `TranslifyError` keeps its code, status and message; anything else is a server-side surprise. */
@@ -47,7 +50,8 @@ export type LoadOutcome = Extract<ClientEvent, { kind: 'loaded' }> | ClientError
 const isLoadOutcome = (event: ClientEvent): event is LoadOutcome =>
   event.kind === 'loaded' || (event.kind === 'error' && event.phase === 'load');
 
-let events: ClientEvent[] = [];
+let events: LoggedClientEvent[] = [];
+let nextId = 1;
 /**
  * What the page renders from: the last `loaded` or load-phase `error` per locale. Kept apart
  * from the log so the drawer's Clear button and the log's cap never change what the app shows.
@@ -74,7 +78,8 @@ const subscribe = (listener: () => void): (() => void) => {
 };
 
 export const appendClientEvent = (event: ClientEvent): void => {
-  events = pushCapped(events, event, MAX_CLIENT_EVENTS);
+  events = pushCapped(events, { ...event, id: nextId }, MAX_CLIENT_EVENTS);
+  nextId += 1;
   if (isLoadOutcome(event) && event.locale !== undefined) {
     loadOutcomes = new Map(loadOutcomes).set(event.locale, event);
   }
@@ -89,7 +94,9 @@ export const clearClientEvents = (): void => {
   notify();
 };
 
-export const useClientEvents = (): ClientEvent[] => useSyncExternalStore(subscribe, () => events);
+export const readClientEvents = (): LoggedClientEvent[] => events;
+
+export const useClientEvents = (): LoggedClientEvent[] => useSyncExternalStore(subscribe, () => events);
 
 export const useLoadOutcome = (locale: string): LoadOutcome | undefined =>
   useSyncExternalStore(subscribe, () => loadOutcomes.get(locale));

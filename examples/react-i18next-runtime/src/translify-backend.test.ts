@@ -87,6 +87,18 @@ describe('createBackend().read', () => {
     expect(client.load).toHaveBeenCalledTimes(2);
   });
 
+  it('emits one loaded row per language, not one per namespace, while the bundle identity is the same', async () => {
+    const { backend, events, set } = setup({ 'it-IT': itIT }, ['cart', 'common']);
+
+    await read(backend, 'it-IT', 'cart');
+    await read(backend, 'it-IT', 'common');
+    expect(events.filter((event) => event.kind === 'loaded')).toHaveLength(1);
+
+    set('it-IT', { 'cart.cartTitle': 'Carrello', 'common.ok': 'OK' });
+    await read(backend, 'it-IT', 'cart');
+    expect(events.filter((event) => event.kind === 'loaded')).toHaveLength(2);
+  });
+
   it('hands a rejected load to i18next as the TranslifyError and records a load error', async () => {
     const { backend, events } = setup({});
 
