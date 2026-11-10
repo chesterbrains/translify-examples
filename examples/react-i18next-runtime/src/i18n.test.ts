@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18next, { type i18n } from 'i18next';
-import ICU from 'i18next-icu';
 import { appendMissingKey } from './diagnostics/exchange-log';
-import { I18N_OPTIONS, translateAndDiagnose } from './i18n';
+import { createIcu, I18N_OPTIONS, translateAndDiagnose } from './i18n';
 
 vi.mock('./diagnostics/exchange-log', () => ({ appendMissingKey: vi.fn() }));
 
@@ -12,7 +11,7 @@ beforeEach(() => {
 
 const makeInstance = async (): Promise<i18n> => {
   const instance = i18next.createInstance();
-  await instance.use(ICU).init({
+  await instance.use(createIcu()).init({
     ...I18N_OPTIONS(['en-US', 'it-IT']),
     resources: {
       'en-US': { cart: { cartTitle: 'Your cart', itemCount: '{count, plural, one {{count} item} other {{count} items}}' } },
@@ -53,5 +52,28 @@ describe('i18n options', () => {
     const instance = await makeInstance();
     const t = (key: string, options?: Record<string, unknown>): string => instance.t(key, options);
     expect(translateAndDiagnose(instance, t, 'itemCount', { count: 2 })).toBe('2 items');
+  });
+
+  it('binds the React re-render to store additions', () => {
+    expect(I18N_OPTIONS(['en-US']).react?.bindI18nStore).toBe('added');
+  });
+
+  it('renders the new text after a bundle is replaced in the store, ICU included', async () => {
+    const instance = await makeInstance();
+    expect(instance.t('itemCount', { count: 2 })).toBe('2 items'); // compiled and memoised once
+    instance.removeResourceBundle('en-US', 'cart');
+    instance.addResourceBundle('en-US', 'cart', {
+      cartTitle: 'Basket',
+      itemCount: '{count, plural, one {{count} thing} other {{count} things}}',
+    });
+    expect(instance.t('cartTitle')).toBe('Basket');
+    expect(instance.t('itemCount', { count: 2 })).toBe('2 things');
+  });
+
+  it('a removed key is gone after a replace, not kept from the old bundle', async () => {
+    const instance = await makeInstance();
+    instance.removeResourceBundle('en-US', 'cart');
+    instance.addResourceBundle('en-US', 'cart', { cartTitle: 'Basket' });
+    expect(instance.exists('itemCount')).toBe(false);
   });
 });

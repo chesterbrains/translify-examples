@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { DeliveryExchange } from '../translify/types';
+import type { DeliveryExchange } from './raw-fetch';
 
 export const MAX_EXCHANGES = 200;
 

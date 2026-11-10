@@ -1,23 +1,19 @@
 import { useTranslation } from 'react-i18next';
-import type { TranslifyConfig } from '../translify/types';
-import { useExchanges } from '../diagnostics/exchange-log';
+import type { TranslifyClient } from '@translifyhq/client';
+import type { TranslifyConfig } from '../config';
+import { useLoadOutcome } from '../diagnostics/client-events';
 import { DiagnosticsDrawer } from '../diagnostics/drawer';
 import { DeliveryErrorCard } from './delivery-error-card';
 import { CartPage } from './cart-page';
 import { LocaleSwitcher } from './locale-switcher';
 import { diagnosticsEnabled } from './diagnostics-flag';
 
-export const App = ({ config }: { config: TranslifyConfig }): React.ReactNode => {
+export const App = ({ config, client }: { config: TranslifyConfig; client: TranslifyClient }): React.ReactNode => {
   const { i18n } = useTranslation();
-  const exchanges = useExchanges();
-  const diagnostics = diagnosticsEnabled(
-    window.location.search,
-    import.meta.env as Record<string, string | undefined>,
-  );
-  const lastAppExchange = [...exchanges].reverse().find((entry) => entry.label.startsWith(`app: ${i18n.language}/`));
-  const failed =
-    lastAppExchange !== undefined &&
-    (lastAppExchange.outcome.kind === 'network' || lastAppExchange.outcome.status !== 200);
+  const diagnostics = diagnosticsEnabled(window.location.search, import.meta.env as Record<string, string | undefined>);
+  // What the client last said about the current language: a bundle, or a load that failed.
+  // Read from the per-locale outcome, not the event log: clearing the drawer must not change the page.
+  const outcome = useLoadOutcome(i18n.language);
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-8">
@@ -25,9 +21,9 @@ export const App = ({ config }: { config: TranslifyConfig }): React.ReactNode =>
         <h1 className="text-xl font-semibold">
           {config.projectSlug} / {config.envSlug}
         </h1>
-        <LocaleSwitcher locales={config.locales} showRevalidate={diagnostics} />
+        <LocaleSwitcher locales={config.locales} showRevalidate={diagnostics} client={client} />
       </header>
-      {failed && lastAppExchange !== undefined ? <DeliveryErrorCard exchange={lastAppExchange} /> : <CartPage />}
+      {outcome?.kind === 'error' ? <DeliveryErrorCard event={outcome} /> : <CartPage />}
       {diagnostics && <DiagnosticsDrawer config={config} />}
     </main>
   );

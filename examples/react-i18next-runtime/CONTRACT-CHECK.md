@@ -2,6 +2,49 @@
 
 A dated, reproducible run of the diagnostics drawer's probes against the delivery endpoint. To re-run: start the runtime example with `?diagnostics` in the URL (see README), run every probe, and replace the table below with what you observed.
 
+## Run of 2026-11-10
+
+Run against `https://translify.tommasofeltrin.work/api` (project `acme-ecom`, environment `production`, live batch #10 → #11 → #12 during the run) with `@translifyhq/client@0.1.1`, on the branch that replaced the hand-rolled delivery client with the package. Observed through the drawer in Chrome; a throwaway publishable key was created for the run and revoked afterwards.
+
+### Client
+
+What `@translifyhq/client` reported, newest last:
+
+| Step | Client row | Page |
+| --- | --- | --- |
+| First load, `localStorage` empty | `loaded en-US · 9 keys · 3 ms` (the browser's HTTP cache still held the bundle from a visit seconds earlier; a cold `it-IT` load below shows the network figure) | cart rendered in English |
+| Switch to Italiano, never loaded | `loaded it-IT · 9 keys · 147 ms` | Italian text |
+| Force revalidate (it-IT) | `revalidated it-IT · unchanged · 135 ms`, then `loaded it-IT · 9 keys · 12 ms` from `reloadResources` | unchanged |
+| Reload the page | `loaded en-US · 9 keys · 1 ms` | rendered at once from `localStorage` |
+| Force revalidate (en-US) | `revalidated en-US · unchanged · 337 ms` | unchanged |
+| Publish #11 in Translify (`cart.cartTitle` it-IT → `Il tuo carrello ✦`), wait 35 s, switch to Italiano | `loaded it-IT · 9 keys · 1 ms` (stale bundle from storage, painted first) then `changed it-IT · 9 keys` | title went from `Il tuo carrello` to `Il tuo carrello ✦` on the open page, without a reload |
+| Publish #12 (revert) | — | restored for everyone else |
+
+The `ms` figures are the example's own stopwatch around `load` / `refresh`; the package exposes no cache-hit flag, and the drawer infers none. A background revalidation answered `304` leaves no row by design; the Network tab shows it.
+
+### Probes
+
+Run in listed order, burst last. Ten probes, all `pass` on first run.
+
+| Probe | Expected | Observed | Verdict |
+| --- | --- | --- | --- |
+| Happy path | 200, non-empty | 200, 9-key bundle | PASS |
+| Wrong project slug | 404 | 404 | PASS |
+| Unknown environment slug | 404 | 404 | PASS |
+| Unknown or disabled locale | 404 | 404 | PASS |
+| Missing key | 401 | 401 | PASS |
+| Garbage key (`pk_not_a_real_key`) | 401 | 401 | PASS |
+| Secret key given to the client | `INVALID_OPTIONS` thrown, no request | `INVALID_OPTIONS`, no request logged | PASS |
+| Unknown namespace | 200 `{}` | 200 `{}` | PASS |
+| Unknown query parameter | 400 at the origin, or the cached bundle | 400 | PASS |
+| Burst of 40 | every call 200 | 40 × 200 | PASS |
+
+Probe requests logged: 48 (9 single + 40 burst; the secret-key probe makes none). Statuses over the log: 42 × 200, 3 × 404, 2 × 401, 1 × 400. No `429`, no console errors. Missing keys stayed empty while the bundle was loaded; with a garbage key the error card showed `UNAUTHORIZED · 401` and the Client section one `error load en-US · UNAUTHORIZED · 401` row (checked separately before the run).
+
+### Backend observations
+
+None new. Items 1–2 of the 2026-09-02 list are fixed and the package relies on them (`ETag` exposed, `Timing-Allow-Origin`); items 3–6 still hold as documented (empty `200` for an unknown namespace, `400` for a junk parameter, per-IP and per-key limits far above ordinary traffic, publishable keys ship in the bundle by design).
+
 ## Run of 2026-09-02
 
 > Historical. This run predates the catalog in this repo (keys were `title`, `empty.cta`, `totals.total`) and two backend changes since: the delivery throttle is now 300 requests / 60 s per IP (the burst probe now expects every call served), and `Cache-Control` is `max-age=30`. Everything else still holds; re-run the probes to refresh this table.

@@ -1,4 +1,12 @@
-import type { TranslifyConfig } from './types';
+/** Validated configuration the whole demo runs on. */
+export interface TranslifyConfig {
+  /** No trailing slash. Includes the backend's `/api` global prefix. */
+  baseUrl: string;
+  projectSlug: string;
+  envSlug: string;
+  apiKey: string;
+  locales: string[];
+}
 
 export const DEFAULT_BASE_URL = 'https://translify.tommasofeltrin.work/api';
 

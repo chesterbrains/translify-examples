@@ -1,21 +1,27 @@
-import type { DeliveryExchange } from '../translify/types';
+import type { ClientErrorEvent } from '../diagnostics/client-events';
 
-const describe = (exchange: DeliveryExchange): string => {
-  if (exchange.outcome.kind === 'network') {
-    return 'Network or CORS failure — indistinguishable from JavaScript. Check the browser console.';
+/** The package maps every HTTP outcome to a `TranslifyError` code; the card speaks in those. */
+const describe = (event: ClientErrorEvent): string => {
+  switch (event.code) {
+    case 'UNAUTHORIZED':
+      return 'Rejected: the delivery key is missing, revoked or not a publishable key.';
+    case 'NOT_FOUND':
+      return 'Not found: the project slug does not match the key, or the environment or locale is unknown, archived, or disabled.';
+    case 'NETWORK':
+      return 'Network or CORS failure — indistinguishable from JavaScript. Check the browser console.';
+    default:
+      return `Delivery failed: ${event.code}.`;
   }
-  if (exchange.outcome.status === 401) return 'Rejected: the API key is missing, unknown, or revoked.';
-  if (exchange.outcome.status === 404) {
-    return 'Not found: the project slug does not match the key, or the environment or locale is unknown, archived, or disabled.';
-  }
-
-  return `Delivery returned ${exchange.outcome.status}.`;
 };
 
-export const DeliveryErrorCard = ({ exchange }: { exchange: DeliveryExchange }): React.ReactNode => (
+export const DeliveryErrorCard = ({ event }: { event: ClientErrorEvent }): React.ReactNode => (
   <div className="rounded border border-red-200 bg-red-50 p-4">
     <h2 className="font-semibold text-red-900">Bundle did not load</h2>
-    <p className="mt-1 text-sm text-red-800">{describe(exchange)}</p>
-    <p className="mt-2 font-mono text-xs text-red-700">{exchange.path}</p>
+    <p className="mt-1 text-sm text-red-800">{describe(event)}</p>
+    <p className="mt-2 font-mono text-xs text-red-700">
+      {event.code}
+      {event.status === undefined ? '' : ` · ${event.status}`}
+      {` · ${event.message}`}
+    </p>
   </div>
 );
