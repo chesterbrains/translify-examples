@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { DeliveryExchange, TranslifyConfig } from '../translify/types';
+import type { DeliveryExchange } from '../translify/types';
+import type { TranslifyConfig } from '../config';
 import { PROBES, verdictOf, type Verdict } from './probes';
 import { clearExchanges, useExchanges, useMissingKeys } from './exchange-log';
 import { maskKey } from '../translify/client';

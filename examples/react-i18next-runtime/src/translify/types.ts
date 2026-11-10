@@ -1,13 +1,3 @@
-/** Validated configuration the whole demo runs on. */
-export interface TranslifyConfig {
-  /** No trailing slash. Includes the backend's `/api` global prefix. */
-  baseUrl: string;
-  projectSlug: string;
-  envSlug: string;
-  apiKey: string;
-  locales: string[];
-}
-
 /** A delivery bundle as served: flat `<namespace>.<keyName>` -> value. */
 export type Bundle = Record<string, string>;
 

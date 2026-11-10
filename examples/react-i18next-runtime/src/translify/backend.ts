@@ -1,5 +1,6 @@
 import type { BackendModule, ReadCallback, Services, InitOptions } from 'i18next';
-import type { Bundle, TranslifyConfig } from './types';
+import type { Bundle } from './types';
+import type { TranslifyConfig } from '../config';
 import { fetchBundle } from './client';
 
 let forceRevalidate = false;

@@ -1,4 +1,5 @@
-import type { DeliveryExchange, TranslifyConfig } from '../translify/types';
+import type { DeliveryExchange } from '../translify/types';
+import type { TranslifyConfig } from '../config';
 import { fetchBundle } from '../translify/client';
 
 export type Verdict = 'pass' | 'fail';

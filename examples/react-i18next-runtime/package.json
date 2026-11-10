@@ -21,6 +21,7 @@
   "packageManager": "pnpm@11.23.0",
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@translifyhq/client": "0.1.1",
     "i18next": "^26.4.1",
     "i18next-icu": "^2.5.0",
     "intl-messageformat": "^10.7.18",

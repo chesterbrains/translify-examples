@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { readConfig } from './translify/config';
+import { readConfig } from './config';
 import { initI18n } from './i18n';
 import { SetupScreen } from './app/setup-screen';
 import { App } from './app/app';

@@ -1,4 +1,5 @@
-import type { DeliveryExchange, TranslifyConfig } from './types';
+import type { DeliveryExchange } from './types';
+import type { TranslifyConfig } from '../config';
 import { appendExchange } from '../diagnostics/exchange-log';
 
 export interface FetchParams {

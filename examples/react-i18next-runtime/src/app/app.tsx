@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { TranslifyConfig } from '../translify/types';
+import type { TranslifyConfig } from '../config';
 import { useExchanges } from '../diagnostics/exchange-log';
 import { DiagnosticsDrawer } from '../diagnostics/drawer';
 import { DeliveryErrorCard } from './delivery-error-card';

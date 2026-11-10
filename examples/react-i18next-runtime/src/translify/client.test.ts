@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { TranslifyConfig } from './types';
+import type { TranslifyConfig } from '../config';
 import { buildDeliveryPath, fetchBundle, maskKey, toExchange, withKey } from './client';
 
 const config: TranslifyConfig = {

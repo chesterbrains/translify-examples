@@ -1,7 +1,7 @@
 import i18next, { type i18n, type InitOptions } from 'i18next';
 import ICU from 'i18next-icu';
 import { initReactI18next } from 'react-i18next';
-import type { TranslifyConfig } from './translify/types';
+import type { TranslifyConfig } from './config';
 import { createBackend } from './translify/backend';
 import { appendMissingKey } from './diagnostics/exchange-log';
 
