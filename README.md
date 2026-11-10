@@ -4,7 +4,7 @@ Complete, copyable apps showing how to use [Translify](https://translify.tommaso
 
 | Example | Style | Format | Toolchain | Shows |
 |---|---|---|---|---|
-| [`examples/react-i18next-runtime`](examples/react-i18next-runtime) | **runtime** | JSON (delivery endpoint) | Vite · React · i18next | custom i18next backend, `?namespace=`, ICU plural, caching, diagnostics drawer |
+| [`examples/react-i18next-runtime`](examples/react-i18next-runtime) | **runtime** | JSON (delivery endpoint) | Vite · React · i18next · `@translifyhq/client` | `@translifyhq/client` behind a custom i18next backend, `localStorage` cache, live updates on publish, ICU plural, diagnostics drawer |
 | [`examples/flutter-arb`](examples/flutter-arb) | build-time | ARB | Flutter `gen-l10n` | `translify pull`, `locales` map, `@@locale`, ICU plural |
 | [`examples/ios-xcstrings`](examples/ios-xcstrings) | build-time | XLIFF 1.2 | Xcode String Catalog | `translify pull` with `xliffDialect: xcode` (ICU ↔ positional printf, `\|==\|` plural and substitution units), `xcodebuild -importLocalizations`, verified by hand on a Mac |
 | [`examples/ios-strings`](examples/ios-strings) | build-time | `.strings` + `.stringsdict` | Foundation `.lproj` tables | `translify pull` with `format: strings` and `format: stringsdict` sharing one namespace (ICU ↔ positional printf, plurals as `NSStringPluralRuleType`), for projects without a String Catalog, verified by hand on a Mac |
