@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { DeliveryExchange } from '../translify/types';
 import type { TranslifyConfig } from '../config';
+import { maskKey, type DeliveryExchange } from './raw-fetch';
 import { PROBES, verdictOf, type Verdict } from './probes';
 import { clearExchanges, useExchanges, useMissingKeys } from './exchange-log';
-import { maskKey } from '../translify/client';
 
 const statusOf = (exchange: DeliveryExchange): string =>
   exchange.outcome.kind === 'network' ? 'network' : String(exchange.outcome.status);
@@ -17,16 +16,6 @@ const ExchangeRow = ({ exchange }: { exchange: DeliveryExchange }): React.ReactN
         <span className="w-16 shrink-0">{statusOf(exchange)}</span>
         <span className="w-40 shrink-0 truncate">{exchange.label}</span>
         <span className="w-16 shrink-0">{Math.round(exchange.ms)}ms</span>
-        <span
-          className="w-24 shrink-0"
-          title={
-            exchange.source === 'likely-cache'
-              ? 'Inferred from latency: Resource Timing had no entry for this request yet.'
-              : 'Measured from Resource Timing transferSize (delivery sends Timing-Allow-Origin: *): 0 bytes is a browser-cache hit.'
-          }
-        >
-          {exchange.source}
-        </span>
         <span className="truncate">{exchange.path}</span>
       </button>
       {open && (

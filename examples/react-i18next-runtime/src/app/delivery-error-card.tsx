@@ -1,4 +1,4 @@
-import type { DeliveryExchange } from '../translify/types';
+import type { DeliveryExchange } from '../diagnostics/raw-fetch';
 
 const describe = (exchange: DeliveryExchange): string => {
   if (exchange.outcome.kind === 'network') {

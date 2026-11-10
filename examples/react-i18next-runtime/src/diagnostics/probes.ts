@@ -1,6 +1,5 @@
-import type { DeliveryExchange } from '../translify/types';
 import type { TranslifyConfig } from '../config';
-import { fetchBundle } from '../translify/client';
+import { rawFetch, type DeliveryExchange } from './raw-fetch';
 
 export type Verdict = 'pass' | 'fail';
 
@@ -37,10 +36,8 @@ export const verdictOf = (probe: Probe, exchanges: DeliveryExchange[]): Verdict 
 const one = async (
   config: TranslifyConfig,
   label: string,
-  overrides: Partial<Parameters<typeof fetchBundle>[1]>,
-): Promise<DeliveryExchange[]> => [
-  await fetchBundle(config, { locale: config.locales[0]!, label, cache: 'reload', ...overrides }),
-];
+  overrides: Partial<Parameters<typeof rawFetch>[1]>,
+): Promise<DeliveryExchange[]> => [await rawFetch(config, { locale: config.locales[0]!, label, ...overrides })];
 
 /**
  * Delivery allows 300 requests per 60 s per IP (6000 per key), so a burst of 40 must be
@@ -89,7 +86,7 @@ export const PROBES: Probe[] = [
     id: 'garbage-key',
     label: 'Garbage key',
     expectation: '401',
-    run: (config) => one(config, 'probe: garbage key', { apiKey: 'tlf_live_not_a_real_key' }),
+    run: (config) => one(config, 'probe: garbage key', { apiKey: 'pk_not_a_real_key' }),
     expect: ([exchange]) => exchange !== undefined && isHttp(exchange, 401),
   },
   {
@@ -114,11 +111,7 @@ export const PROBES: Probe[] = [
     run: async (config) =>
       Promise.all(
         Array.from({ length: BURST_SIZE }, (_unused, index) =>
-          fetchBundle(config, {
-            locale: config.locales[0]!,
-            label: `probe: burst ${index + 1}`,
-            cache: 'reload',
-          }),
+          rawFetch(config, { locale: config.locales[0]!, label: `probe: burst ${index + 1}` }),
         ),
       ),
     expect: (exchanges) => exchanges.length === BURST_SIZE && exchanges.every(isNonEmptyBundle),

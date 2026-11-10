@@ -2,7 +2,6 @@ import i18next, { type i18n, type InitOptions } from 'i18next';
 import ICU from 'i18next-icu';
 import { initReactI18next } from 'react-i18next';
 import type { TranslifyConfig } from './config';
-import { createBackend } from './translify/backend';
 import { appendMissingKey } from './diagnostics/exchange-log';
 
 /**
@@ -30,7 +29,8 @@ export const I18N_OPTIONS = (locales: string[]): InitOptions => ({
 
 /** Plurals and arguments are ICU in Translify, so i18next formats them with ICU too. */
 export const initI18n = async (config: TranslifyConfig): Promise<i18n> => {
-  await i18next.use(ICU).use(createBackend(config)).use(initReactI18next).init(I18N_OPTIONS(config.locales));
+  // Backend wiring returns with the @translifyhq/client integration (next commit).
+  await i18next.use(ICU).use(initReactI18next).init(I18N_OPTIONS(config.locales));
 
   return i18next;
 };

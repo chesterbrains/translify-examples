@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { setForceRevalidate } from '../translify/backend';
 
 export const LocaleSwitcher = ({
   locales,
@@ -28,11 +27,9 @@ export const LocaleSwitcher = ({
    */
   const revalidate = (): void => {
     setBusy(true);
-    setForceRevalidate(true);
     void i18n
       .reloadResources([i18n.language])
       .finally(() => {
-        setForceRevalidate(false);
         setBusy(false);
       });
   };

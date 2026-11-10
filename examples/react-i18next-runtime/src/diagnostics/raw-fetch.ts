@@ -1,10 +1,27 @@
-import type { DeliveryExchange } from './types';
 import type { TranslifyConfig } from '../config';
-import { appendExchange } from '../diagnostics/exchange-log';
+import { appendExchange } from './exchange-log';
 
-export interface FetchParams {
+/** What came back. A network outcome carries no status — the browser never saw one. */
+export type ExchangeOutcome =
+  | { kind: 'http'; status: number; body: unknown }
+  | { kind: 'network'; message: string };
+
+/** One recorded probe call against the delivery endpoint. */
+export interface DeliveryExchange {
+  id: string;
+  at: number;
+  /** Who made the call: a probe's label. */
+  label: string;
+  /** Path plus query, without the base URL. Never carries the raw key. */
+  path: string;
+  ms: number;
+  /** The response's validator, when the response carried one (delivery exposes `ETag` over CORS). */
+  etag?: string;
+  outcome: ExchangeOutcome;
+}
+
+export interface RawFetchParams {
   locale: string;
-  /** Who is calling: `app: it-IT`, or a probe's label. */
   label: string;
   namespace?: string;
   /** Overrides exist so probes can aim at deliberately wrong targets. */
@@ -13,18 +30,10 @@ export interface FetchParams {
   /** `null` omits the key entirely; `undefined` uses the configured key. */
   apiKey?: string | null;
   extraQuery?: Record<string, string>;
-  cache?: RequestCache;
-  /**
-   * Sent as `If-None-Match`. The header is not CORS-safelisted, so the browser
-   * preflights the request (delivery lets it cache that preflight for a day), and
-   * the fetch spec turns a request with a conditional header into `no-store`: the
-   * server, not the browser cache, answers, with a 304 when the validator matches.
-   */
-  ifNoneMatch?: string;
 }
 
 /** `key`, when given, is appended as `key=` — the delivery contract since edge caching. */
-export const buildDeliveryPath = (config: TranslifyConfig, params: FetchParams, key?: string): string => {
+export const buildDeliveryPath = (config: TranslifyConfig, params: RawFetchParams, key?: string): string => {
   const projectSlug = params.projectSlug ?? config.projectSlug;
   const envSlug = params.envSlug ?? config.envSlug;
   const query = new URLSearchParams(params.extraQuery ?? {});
@@ -46,25 +55,6 @@ export const maskKey = (key: string): string => `${'•'.repeat(8)}${key.slice(-
 export const withKey = (path: string, maskedKey: string): string =>
   `${path}${path.includes('?') ? '&' : '?'}key=${maskedKey}`;
 
-/**
- * Latency fallback, used only when Resource Timing has no entry for the request:
- * below this, a response almost certainly came from the browser's HTTP cache.
- */
-export const CACHE_MS_THRESHOLD = 5;
-
-/**
- * `transferSize` of the request's Resource Timing entry, when the browser recorded one.
- * It is only non-zero cross-origin because delivery sends `Timing-Allow-Origin: *`; a
- * cache hit reports 0. The entry is queued when the fetch completes, so it may not be
- * there yet right after the body is read — hence the fallback.
- */
-export const measuredTransferSize = (url: string): number | undefined => {
-  if (typeof performance === 'undefined' || typeof performance.getEntriesByName !== 'function') return undefined;
-  const entry = performance.getEntriesByName(url, 'resource').at(-1);
-
-  return entry !== undefined && 'transferSize' in entry ? (entry as PerformanceResourceTiming).transferSize : undefined;
-};
-
 export interface ExchangeInput {
   label: string;
   path: string;
@@ -73,14 +63,7 @@ export interface ExchangeInput {
   body?: unknown;
   error?: unknown;
   etag?: string;
-  transferSize?: number;
 }
-
-const sourceOf = (input: ExchangeInput): DeliveryExchange['source'] => {
-  if (input.transferSize !== undefined) return input.transferSize === 0 ? 'cache' : 'network';
-
-  return input.ms < CACHE_MS_THRESHOLD ? 'likely-cache' : 'network';
-};
 
 export const toExchange = (input: ExchangeInput): DeliveryExchange => ({
   id: crypto.randomUUID(),
@@ -88,7 +71,6 @@ export const toExchange = (input: ExchangeInput): DeliveryExchange => ({
   label: input.label,
   path: input.path,
   ms: input.ms,
-  source: sourceOf(input),
   ...(input.etag === undefined ? {} : { etag: input.etag }),
   outcome:
     input.status === undefined
@@ -97,18 +79,17 @@ export const toExchange = (input: ExchangeInput): DeliveryExchange => ({
 });
 
 /**
- * The only code in the demo that talks to the delivery endpoint. Every call is
- * logged, so the diagnostics drawer sees real application traffic.
+ * The probes' own `fetch`: it exists so the drawer can aim requests at deliberately wrong
+ * targets (a missing key, a wrong slug, junk query parameters) that `@translifyhq/client`
+ * gives no way to send. It never reads the browser cache (`cache: 'reload'`), never sends
+ * a conditional header, and never caches anything itself: the application's traffic goes
+ * through the package, not through here.
  */
-export const fetchBundle = async (
-  config: TranslifyConfig,
-  params: FetchParams,
-): Promise<DeliveryExchange> => {
+export const rawFetch = async (config: TranslifyConfig, params: RawFetchParams): Promise<DeliveryExchange> => {
   const key = params.apiKey === undefined ? config.apiKey : params.apiKey;
-  // Since edge caching the key travels in the URL: the edge cache keys on it, and a
-  // request with no custom header needs no CORS preflight.
+  // The key travels in the URL: the edge cache keys on it, and a request with no custom
+  // header needs no CORS preflight.
   const requestPath = buildDeliveryPath(config, params, key ?? undefined);
-  // The drawer shows `path`; it must never carry the raw key.
   const path = buildDeliveryPath(config, params);
   const shownPath = key === null ? path : withKey(path, maskKey(key));
 
@@ -116,11 +97,7 @@ export const fetchBundle = async (
   let exchange: DeliveryExchange;
 
   try {
-    const url = `${config.baseUrl}${requestPath}`;
-    const response = await fetch(url, {
-      cache: params.cache ?? 'default',
-      headers: params.ifNoneMatch === undefined ? {} : { 'If-None-Match': params.ifNoneMatch },
-    });
+    const response = await fetch(`${config.baseUrl}${requestPath}`, { cache: 'reload' });
     const text = await response.text();
     let body: unknown = text;
     try {
@@ -135,17 +112,11 @@ export const fetchBundle = async (
       status: response.status,
       body,
       etag: response.headers.get('etag') ?? undefined,
-      transferSize: measuredTransferSize(url),
     });
   } catch (error) {
     // A CORS rejection and a dead server are indistinguishable here: both are a
     // TypeError with no status. The drawer says so rather than guessing.
-    exchange = toExchange({
-      label: params.label,
-      path: shownPath,
-      ms: performance.now() - started,
-      error,
-    });
+    exchange = toExchange({ label: params.label, path: shownPath, ms: performance.now() - started, error });
   }
 
   appendExchange(exchange);

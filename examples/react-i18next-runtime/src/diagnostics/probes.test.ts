@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DeliveryExchange } from '../translify/types';
+import type { DeliveryExchange } from './raw-fetch';
 import { anyStatus, BURST_SIZE, isEmptyBundle, isHttp, isNonEmptyBundle, PROBES, verdictOf } from './probes';
 
 const exchange = (status: number, body: unknown = {}): DeliveryExchange => ({
@@ -8,7 +8,6 @@ const exchange = (status: number, body: unknown = {}): DeliveryExchange => ({
   label: 'probe',
   path: '/delivery/a/b/c',
   ms: 10,
-  source: 'network',
   outcome: { kind: 'http', status, body },
 });
 
@@ -18,7 +17,6 @@ const networkExchange: DeliveryExchange = {
   label: 'probe',
   path: '/delivery/a/b/c',
   ms: 2,
-  source: 'likely-cache',
   outcome: { kind: 'network', message: 'Failed to fetch' },
 };
 
